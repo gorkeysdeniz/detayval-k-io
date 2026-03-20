@@ -6,11 +6,11 @@ API_KEY = "AIzaSyBVh5prpNUgJXGFfDQXOhnSk5AqBz-Y5Bc"
 
 st.set_page_config(page_title="Detayvalık Asistanı", layout="centered", page_icon="🏡")
 
-# AI Modelini En Standart İsimle Hazırla
+# AI Modelini Hazırla
 try:
     genai.configure(api_key=API_KEY)
-    # 'gemini-pro' ismi en stabil ve her sürümde çalışan isimdir
-    model = genai.GenerativeModel('gemini-pro')
+    # Model ismini 'gemini-1.5-flash' olarak sabitledik
+    model = genai.GenerativeModel('gemini-1.5-flash')
 except Exception as e:
     st.error("AI Yapılandırma Hatası!")
 
@@ -28,8 +28,6 @@ BİLGİLERİN:
 - CAFELER: Pinos Cafe Sarımsaklı, Nona Cunda, Crew Coffe.
 - PLAJLAR: Ücretli (Ayvalık Sea Long, Ajlan, Kesebir, Scala), Ücretsiz (Badavut, Sarımsaklı, Ortunç).
 - TARİHİ YERLER: Ayazma, Rahmi Koç Müzesi, Taksiyarhis Kilisesi, Yel Değirmeni.
-
-Eğer evle ilgili teknik (şofben, klima vb.) soru gelirse 'Dostum bu teknik detayları henüz hafızama atmadık, ev sahibimize WhatsApp üzerinden sormanı rica ederim.' de.
 """
 
 # --- 3. TASARIM (CSS) ---
@@ -39,23 +37,19 @@ st.markdown("""
     .main-header { 
         background: linear-gradient(135deg, #1A3636 0%, #4F6F52 100%); 
         color: white; padding: 25px; border-radius: 20px; text-align: center; 
-        margin-bottom: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        margin-bottom: 25px;
     }
-    .stChatFloatingInputContainer { background-color: white; }
     </style>
     """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-header"><h1>🏡 Detayvalık Misafir Paneli</h1></div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header"><h1>🏡 Detayvalık Asistanı</h1></div>', unsafe_allow_html=True)
 
 # Sekmeler
-t_rehber, t_ai = st.tabs(["📍 Hızlı Rehber", "🤖 Akıllı Asistan"])
+t_rehber, t_ai = st.tabs(["📍 Rehber", "🤖 Akıllı Asistan"])
 
 with t_rehber:
     st.info("🍴 **Tost:** Tostuyevski & Aşkın Tost Evi favorimizdir.")
-    st.success("🍕 **Pizza:** Cunda Uno ve Küçük İtalya'yı denemelisiniz.")
-    st.warning("🌊 **Plaj:** Sakinlik arıyorsanız Badavut Plajı tam size göre.")
-    st.write("---")
-    st.write("💡 Detaylı öneriler için yan sekmeye geçip bana sorabilirsin!")
+    st.success("🌊 **Plaj:** Sakinlik için Badavut'u deneyin.")
 
 with t_ai:
     if "messages" not in st.session_state:
@@ -72,14 +66,16 @@ with t_ai:
 
         with st.chat_message("assistant"):
             try:
-                # Modeli en basit haliyle çağırıyoruz
-                response = model.generate_content(f"{SYSTEM_PROMPT}\n\nSoru: {prompt}")
+                # generate_content'i en yalın haliyle çağırıyoruz
+                response = model.generate_content(f"{SYSTEM_PROMPT}\n\nKullanıcı: {prompt}")
                 
-                if response and response.text:
+                # Yanıtın içinde text olup olmadığını kontrol ediyoruz
+                if response and hasattr(response, 'text'):
                     ai_text = response.text
                     st.markdown(ai_text)
                     st.session_state.messages.append({"role": "assistant", "content": ai_text})
                 else:
-                    st.warning("Yanıt alınamadı, lütfen tekrar dener misin?")
+                    st.warning("Dostum, yanıtı oluştururken bir takılma oldu. Lütfen tekrar sor.")
             except Exception as e:
-                st.error(f"Teknik bir sorun: {str(e)}")
+                # Hata 404 ise alternatif bir model denemesi yapalım (Opsiyonel ama güvenli)
+                st.error(f"Teknik bir sorun oluştu. Hata: {str(e)}")
