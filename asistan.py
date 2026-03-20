@@ -7,7 +7,9 @@ import random
 try:
     if "GEMINI_API_KEY" in st.secrets:
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # Model tanımlamasını bir kez yapıyoruz
+        if "model" not in st.session_state:
+            st.session_state.model = genai.GenerativeModel('gemini-1.5-flash')
     else:
         st.error("API Key Eksik!")
 except:
@@ -15,10 +17,10 @@ except:
 
 st.set_page_config(page_title="Detayvalık Asistanı", layout="centered", page_icon="🏡")
 
-# --- 2. VERİ TABANI (Öncelikli Bilgiler) ---
+# --- 2. VERİ TABANI ---
 BILGI_BANKASI = {
     "yemek": {
-        "anahtarlar": ["yemek", "ne yiyelim", "acıktım", "restoran", "mutfak", "lezzet"],
+        "anahtarlar": ["yemek", "ne yiyelim", "acıktım", "restoran", "mutfak", "lezzet", "açım"],
         "cevap": "Dostum Ayvalık'ta aç kalman imkansız! \n\n• **Tost:** Tostuyevski (Favorim).\n• **Pizza:** Cunda Uno veya Küçük İtalya.\n• **Tatlı:** Nona Cunda.\n• **Akşam:** Pizza Teos veya Tino Pizza."
     },
     "tost": {
@@ -35,7 +37,7 @@ BILGI_BANKASI = {
     }
 }
 
-# --- 3. TASARIM (BÜYÜK MENÜLER) ---
+# --- 3. TASARIM ---
 st.markdown("""<style>
     .main-header { background: linear-gradient(135deg, #1A3636 0%, #4F6F52 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; }
     .stTabs [data-baseweb="tab"] { height: 70px; font-size: 18px !important; font-weight: bold; }
@@ -48,16 +50,12 @@ t_rehber, t_ai, t_etkinlik, t_eczane = st.tabs(["📍 Rehber", "🤖 Asistan", "
 # --- 4. AKILLI CEVAP MOTORU ---
 def yanıt_uret(soru):
     soru_low = soru.lower()
-    
-    # ADIM 1: Önce Bilgi Bankasında ara (Hızlı ve Kota Dostu)
     for kategori, icerik in BILGI_BANKASI.items():
         if any(anahtar in soru_low for anahtar in icerik["anahtarlar"]):
             return icerik["cevap"]
-    
-    # ADIM 2: Eğer listede yoksa AI'ya sor (Zekice cevaplar için)
     try:
-        sys_msg = "Sen Detayvalık Villa asistanı samimi bir Ayvalıklısın. Soru senin bilmediğin bir şeyse kibarca 'bilmiyorum' demek yerine genel bir cevap ver."
-        response = model.generate_content(f"{sys_msg}\n\nSoru: {soru}")
+        sys_msg = "Sen Detayvalık Villa asistanı samimi bir Ayvalıklısın. Kısa ve öz cevap ver."
+        response = st.session_state.model.generate_content(f"{sys_msg}\n\nSoru: {soru}")
         return response.text
     except:
         return "Dostum şu an biraz dalgınım, tekrar sorar mısın?"
@@ -67,24 +65,28 @@ with t_rehber:
     st.info("💡 **Günün Önerisi:** Badavut'ta gün batımını izlemeden dönme!")
 
 with t_ai:
+    # 1. Mesaj hafızasını başlat
     if "messages" not in st.session_state:
         st.session_state.messages = [{"role": "assistant", "content": "Selam dostum! Hoş geldin. Ayvalık hakkında ne bilmek istersin?"}]
     
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]): st.markdown(msg["content"])
-
+    # 2. MESAJLARI GÖSTEREN SABİT KONTEYNER (KAYMAYI ÖNLER)
+    chat_container = st.container()
+    
+    # 3. KULLANICI GİRİŞİ (HER ZAMAN EN ALTTA)
     if prompt := st.chat_input("Sor bakalım..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"): st.markdown(prompt)
-        
+        # AI Yanıtını Üret
         cevap = yanıt_uret(prompt)
-        
-        with st.chat_message("assistant"): st.markdown(cevap)
         st.session_state.messages.append({"role": "assistant", "content": cevap})
+
+    # 4. KONTEYNER İÇİNDE TÜM MESAJLARI ÇİZDİR
+    with chat_container:
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
 
 with t_etkinlik:
     st.subheader("📅 Yaklaşan Konserler")
-    # Dinamik etkinlik kodun buraya gelecek (v3.7'deki gibi)
     st.write("24.03.2026 - Teoman")
     st.write("27.03.2026 - Pinhani")
 
