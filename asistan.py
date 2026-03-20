@@ -7,7 +7,6 @@ import random
 try:
     if "GEMINI_API_KEY" in st.secrets:
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-        # Model tanımlamasını bir kez yapıyoruz
         if "model" not in st.session_state:
             st.session_state.model = genai.GenerativeModel('gemini-1.5-flash')
     else:
@@ -17,33 +16,69 @@ except:
 
 st.set_page_config(page_title="Detayvalık Asistanı", layout="centered", page_icon="🏡")
 
-# --- 2. VERİ TABANI ---
+# --- 2. MODERN TASARIM (CSS) ---
+st.markdown("""
+    <style>
+    /* Arka Plan ve Genel Font */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+    
+    /* Ana Başlık (Gradient) */
+    .main-header {
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        color: white;
+        padding: 40px 20px;
+        border-radius: 20px;
+        text-align: center;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    /* Modern Kart Yapısı */
+    .info-card {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 15px;
+        border-left: 5px solid #4F6F52;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    /* Sekme Menülerini Büyütme ve Güzelleştirme */
+    .stTabs [data-baseweb="tab"] {
+        height: 60px;
+        font-size: 18px !important;
+        font-weight: 600;
+        color: #2c5364;
+    }
+    .stTabs [aria-selected="true"] { color: #4F6F52 !important; border-bottom: 3px solid #4F6F52 !important; }
+
+    /* Mesaj Balonları */
+    .stChatMessage { border-radius: 20px !important; border: none !important; background-color: #f8f9fa !important; padding: 15px !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- 3. VERİ TABANI ---
 BILGI_BANKASI = {
     "yemek": {
         "anahtarlar": ["yemek", "ne yiyelim", "acıktım", "restoran", "mutfak", "lezzet", "açım"],
-        "cevap": "Dostum Ayvalık'ta aç kalman imkansız! \n\n• **Tost:** Tostuyevski (Favorim).\n• **Pizza:** Cunda Uno veya Küçük İtalya.\n• **Tatlı:** Nona Cunda.\n• **Akşam:** Pizza Teos veya Tino Pizza."
+        "cevap": "Dostum Ayvalık'ta aç kalman imkansız! \n\n🍕 **Pizza:** Cunda Uno veya Küçük İtalya.\n🥪 **Tost:** Tostuyevski (Favorim).\n🍰 **Tatlı:** Nona Cunda.\n🍝 **Akşam:** Pizza Teos veya Tino Pizza."
     },
     "tost": {
         "anahtarlar": ["tost", "tostçu", "tostuyevski", "aşkın"],
-        "cevap": "Ayvalık'ta tost denince akla gelen ilk yer **Tostuyevski**! Ayrıca **Aşkın Tost Evi** de efsanedir."
+        "cevap": "Ayvalık'ta tost denince akla gelen ilk yer **Tostuyevski**! Ayrıca **Aşkın Tost Evi** ve **Tadım Tost Evi** de efsanedir."
     },
     "cafe": {
         "anahtarlar": ["cafe", "kahve", "tatlı", "kafe", "coffee", "pinos", "nona", "crew"],
-        "cevap": "Kahve molası için favorilerim: \n\n• **Pinos Cafe:** Villaya çok yakın.\n• **Nona Cunda:** Tatlıları harika.\n• **Crew Coffee:** Modern kahve.\n• **Kaktüs Cunda:** En sevdiğim!"
+        "cevap": "Kahve molası için favorilerim: \n\n☕ **Pinos Cafe:** Villaya çok yakın.\n🧁 **Nona Cunda:** Tatlıları harika.\n⚡ **Crew Coffee:** Modern kahve.\n🌵 **Kaktüs Cunda:** En sevdiğim!"
     },
     "plaj": {
         "anahtarlar": ["plaj", "deniz", "beach", "yüzme", "badavut", "sarımsaklı"],
-        "cevap": "**Ücretsiz:** Badavut (Favorim!), Sarımsaklı ve Ortunç Koyu. \n**Ücretli:** Ayvalık Sea Long, Ajlan, Kesebir ve Scala Beach."
+        "cevap": "🏖️ **Ücretsiz:** Badavut (Favorim!), Sarımsaklı ve Ortunç Koyu. \n💎 **Ücretli:** Ayvalık Sea Long, Ajlan, Kesebir ve Scala Beach."
     }
 }
 
-# --- 3. TASARIM ---
-st.markdown("""<style>
-    .main-header { background: linear-gradient(135deg, #1A3636 0%, #4F6F52 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; }
-    .stTabs [data-baseweb="tab"] { height: 70px; font-size: 18px !important; font-weight: bold; }
-</style>""", unsafe_allow_html=True)
-
-st.markdown('<div class="main-header"><h1>🏡 Detayvalık Asistanı</h1></div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header"><h1>🏠 Detayvalık Asistanı</h1><p style="opacity: 0.8;">Ayvalık Tatil Rehberinize Hoş Geldiniz</p></div>', unsafe_allow_html=True)
 
 t_rehber, t_ai, t_etkinlik, t_eczane = st.tabs(["📍 Rehber", "🤖 Asistan", "🎉 Etkinlik", "💊 Eczane"])
 
@@ -58,37 +93,34 @@ def yanıt_uret(soru):
         response = st.session_state.model.generate_content(f"{sys_msg}\n\nSoru: {soru}")
         return response.text
     except:
-        return "Dostum şu an biraz dalgınım, tekrar sorar mısın?"
+        return "Dostum şu an biraz dalgınım, 1-2 dakika sonra tekrar sorar mısın?"
 
 # --- SEKMELER ---
 with t_rehber:
-    st.info("💡 **Günün Önerisi:** Badavut'ta gün batımını izlemeden dönme!")
+    st.markdown(f"""<div class="info-card">💡 <b>Günün Önerisi:</b><br>{random.choice(["Badavut'ta gün batımını izlemeden dönme!", "Tostuyevski'de karışık tost denemelisin.", "Kaktüs Cunda'da kahve molası ver."])}</div>""", unsafe_allow_html=True)
+    st.info("Detaylı bilgi ve konumlar için Asistan sekmesini kullanabilirsin dostum.")
 
 with t_ai:
-    # 1. Mesaj hafızasını başlat
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "Selam dostum! Hoş geldin. Ayvalık hakkında ne bilmek istersin?"}]
+        st.session_state.messages = [{"role": "assistant", "content": "Selam dostum! Ayvalık hakkında ne bilmek istersin?"}]
     
-    # 2. MESAJLARI GÖSTEREN SABİT KONTEYNER (KAYMAYI ÖNLER)
     chat_container = st.container()
     
-    # 3. KULLANICI GİRİŞİ (HER ZAMAN EN ALTTA)
-    if prompt := st.chat_input("Sor bakalım..."):
+    if prompt := st.chat_input("Nereye gidelim dostum?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        # AI Yanıtını Üret
         cevap = yanıt_uret(prompt)
         st.session_state.messages.append({"role": "assistant", "content": cevap})
 
-    # 4. KONTEYNER İÇİNDE TÜM MESAJLARI ÇİZDİR
     with chat_container:
         for msg in st.session_state.messages:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
 with t_etkinlik:
-    st.subheader("📅 Yaklaşan Konserler")
-    st.write("24.03.2026 - Teoman")
-    st.write("27.03.2026 - Pinhani")
+    st.subheader("📅 Yaklaşan Etkinlikler")
+    # Örnek kart yapısı
+    st.markdown("""<div class="info-card">🎤 <b>Teoman Konseri</b><br>🗓 24 Mart 2026</div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="info-card">🎸 <b>Pinhani</b><br>🗓 27 Mart 2026</div>""", unsafe_allow_html=True)
 
 with t_eczane:
-    st.link_button("💊 Nöbetçi Eczane Listesi", "https://www.balikesireczaciodasi.org.tr/nobetci-eczaneler")
+    st.link_button("💊 Nöbetçi Eczane Listesi", "https://www.balikesireczaciodasi.org.tr/nobetci-eczaneler", use_container_width=True)
