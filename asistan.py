@@ -13,7 +13,7 @@ except Exception as e:
 
 st.set_page_config(page_title="Detayvalık Asistanı", layout="centered", page_icon="🏡")
 
-# Model Seçici (En kararlı çalışan modeli bulur)
+# Model Seçici - Sadece bir kez çalışır
 if "ai_model" not in st.session_state:
     try:
         models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
@@ -21,10 +21,10 @@ if "ai_model" not in st.session_state:
         chosen_model = next((m for m in target_models if m in models), models[0])
         st.session_state.ai_model = genai.GenerativeModel(chosen_model)
     except Exception as e:
-        st.error(f"Bağlantı Hatası: {str(e)}")
+        st.error(f"Bağlantı Hatası: {e}")
 
 # --- 2. SİSTEM TALİMATI ---
-SYSTEM_INSTRUCTION = "Sen Detayvalık Villa asistanısın. Samimi, Ayvalıklı bir dostsun. Tostuyevski, Cunda Uno, Kaktüs Cunda favorindir. İlk mesaj dışında kendini tanıtma."
+SYSTEM_INSTRUCTION = "Sen Detayvalık Villa asistanısın. Samimi, Ayvalıklı bir dostsun. İlk mesaj hariç kendini tanıtma. Kısa cevap ver."
 
 # --- 3. TASARIM ---
 st.markdown("""<style>.main-header { background: linear-gradient(135deg, #1A3636 0%, #4F6F52 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; }</style>""", unsafe_allow_html=True)
@@ -37,35 +37,42 @@ with t_rehber:
 
 with t_ai:
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "Merhaba, Detayvalık.io Ayvalık Rehberine hoş geldin. Ayvalık ile ilgili her şeyi bana sorabilirsin dostum!"}]
+        st.session_state.messages = [{"role": "assistant", "content": "Selam dostum! Ayvalık hakkında ne bilmek istersin?"}]
 
-    # MESAJLARI SABİT TUTAN KONTEYNER
-    chat_container = st.container()
+    # Mesajları gösteren ana kutu
+    chat_box = st.container()
 
-    # Kullanıcı girişi
-    if prompt := st.chat_input("Sor bakalım dostum..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        
-        try:
-            # Hafızayı taze tutmak için son mesajlar
-            history = st.session_state.messages[-3:]
-            context = "\n".join([f"{m['role']}: {m['content']}" for m in history])
-            
-            # AI Yanıtı Üretme
-            response = st.session_state.ai_model.generate_content(f"{SYSTEM_INSTRUCTION}\n\n{context}\nAsistan:")
-            
-            if response and response.text:
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
-                st.rerun() # Sayfayı tazeleyip akışı sağlar
-        except Exception as e:
-            st.error(f"Ufak bir takılma: {str(e)[:50]}")
-
-    # Mesajları konteyner içinde göster (Kaymayı bu engeller)
-    with chat_container:
+    # Önce eski mesajları ekrana bas
+    with chat_box:
         for msg in st.session_state.messages:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
+    # Kullanıcıdan yeni mesaj al
+    if prompt := st.chat_input("Sor bakalım dostum..."):
+        # Kullanıcı mesajını hemen ekrana ve hafızaya ekle
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with chat_box.chat_message("user"):
+            st.markdown(prompt)
+        
+        # AI Yanıtı Üretme (Kota dostu yöntem)
+        try:
+            with chat_box.chat_message("assistant"):
+                # Sadece son 2 mesajı gönder (Kotaları korur)
+                history = st.session_state.messages[-2:]
+                context = "\n".join([f"{m['role']}: {m['content']}" for m in history])
+                
+                response = st.session_state.ai_model.generate_content(f"{SYSTEM_INSTRUCTION}\n\n{context}")
+                
+                if response and response.text:
+                    ai_reply = response.text
+                    st.markdown(ai_reply)
+                    st.session_state.messages.append({"role": "assistant", "content": ai_reply})
+        except Exception as e:
+            if "429" in str(e):
+                st.error("Dostum çok hızlı sordun, Google biraz dinlenmemi istiyor. 30 saniye sonra tekrar dener misin?")
+            else:
+                st.error(f"Ufak bir takılma: {str(e)[:50]}")
+
 with t_eczane:
-    st.subheader("💊 Nöbetçi Eczaneler")
-    st.link_button("Resmi Listeyi Aç", "https://www.balikesireczaciodasi.org.tr/nobetci-eczaneler")
+    st.link_button("💊 Nöbetçi Eczane Listesi", "https://www.balikesireczaciodasi.org.tr/nobetci-eczaneler")
