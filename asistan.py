@@ -19,11 +19,9 @@ st.set_page_config(page_title="Detayvalık Asistanı", layout="centered", page_i
 # --- 2. MODERN TASARIM (CSS) ---
 st.markdown("""
     <style>
-    /* Arka Plan ve Genel Font */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     
-    /* Ana Başlık (Gradient) */
     .main-header {
         background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
         color: white;
@@ -34,7 +32,6 @@ st.markdown("""
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
     
-    /* Modern Kart Yapısı */
     .info-card {
         background: #ffffff;
         padding: 20px;
@@ -42,9 +39,9 @@ st.markdown("""
         border-left: 5px solid #4F6F52;
         margin-bottom: 15px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        color: #333;
     }
 
-    /* Sekme Menülerini Büyütme ve Güzelleştirme */
     .stTabs [data-baseweb="tab"] {
         height: 60px;
         font-size: 18px !important;
@@ -53,7 +50,6 @@ st.markdown("""
     }
     .stTabs [aria-selected="true"] { color: #4F6F52 !important; border-bottom: 3px solid #4F6F52 !important; }
 
-    /* Mesaj Balonları */
     .stChatMessage { border-radius: 20px !important; border: none !important; background-color: #f8f9fa !important; padding: 15px !important; }
     </style>
     """, unsafe_allow_html=True)
@@ -95,11 +91,22 @@ def yanıt_uret(soru):
     except:
         return "Dostum şu an biraz dalgınım, 1-2 dakika sonra tekrar sorar mısın?"
 
-# --- SEKMELER ---
+# --- SEKME 1: REHBER ---
 with t_rehber:
+    # 1. Günün Önerisi
     st.markdown(f"""<div class="info-card">💡 <b>Günün Önerisi:</b><br>{random.choice(["Badavut'ta gün batımını izlemeden dönme!", "Tostuyevski'de karışık tost denemelisin.", "Kaktüs Cunda'da kahve molası ver."])}</div>""", unsafe_allow_html=True)
-    st.info("Detaylı bilgi ve konumlar için Asistan sekmesini kullanabilirsin dostum.")
+    
+    # 2. Wi-Fi Bilgisi
+    st.markdown("""<div class="info-card" style="border-left-color: #2c5364;">🌐 <b>Wi-Fi Bilgileri:</b><br>Ağ Adı: <b>Detayvalik_Villa</b><br>Şifre: <b>ayvalik2026</b></div>""", unsafe_allow_html=True)
+    
+    # 3. Ev Kuralları
+    st.markdown("""<div class="info-card" style="border-left-color: #a04747;">📜 <b>Konaklama Kurallarımız:</b><br>
+    • 🤫 <b>Gece 00:00'dan sonra</b> dış alanlarda gürültü yapılmaması rica olunur.<br>
+    • ❄️ <b>Evden çıkarken</b> klimaların kapatılması rica olunur (Doğa dostu villa!).<br>
+    • 🚭 <b>Kapalı alanlarda</b> sigara içilmesi kesinlikle yasaktır.<br>
+    • 🔑 Giriş ve çıkış saatleri için asistana danışabilirsiniz.</div>""", unsafe_allow_html=True)
 
+# --- SEKME 2: ASİSTAN ---
 with t_ai:
     if "messages" not in st.session_state:
         st.session_state.messages = [{"role": "assistant", "content": "Selam dostum! Ayvalık hakkında ne bilmek istersin?"}]
@@ -116,11 +123,12 @@ with t_ai:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
+# --- SEKME 3: ETKİNLİKLER ---
 with t_etkinlik:
     st.subheader("📅 Yaklaşan Etkinlikler")
-    # Örnek kart yapısı
     st.markdown("""<div class="info-card">🎤 <b>Teoman Konseri</b><br>🗓 24 Mart 2026</div>""", unsafe_allow_html=True)
     st.markdown("""<div class="info-card">🎸 <b>Pinhani</b><br>🗓 27 Mart 2026</div>""", unsafe_allow_html=True)
 
+# --- SEKME 4: ECZANE ---
 with t_eczane:
     st.link_button("💊 Nöbetçi Eczane Listesi", "https://www.balikesireczaciodasi.org.tr/nobetci-eczaneler", use_container_width=True)
