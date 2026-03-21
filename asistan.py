@@ -13,7 +13,7 @@ except:
 
 st.set_page_config(page_title="Detayvalık Asistanı Beta 1.2", layout="centered", page_icon="🏡")
 
-# --- 2. CSS: AKILLI KATMAN VE 2x2 DÜZEN ---
+# --- 2. CSS: TIKLANABİLİR KATMAN TASARIMI ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
@@ -21,82 +21,84 @@ st.markdown("""
     
     .main-header {
         background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-        color: white; padding: 30px 10px; border-radius: 20px; text-align: center; margin-bottom: 20px; position: relative;
+        color: white; padding: 30px 10px; border-radius: 20px; text-align: center; margin-bottom: 25px; position: relative;
     }
     
     .beta-badge { position: absolute; top: 10px; right: 15px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; font-size: 10px; }
 
-    /* 2x2 Izgara */
-    .menu-grid {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: -135px; /* Butonların üstüne binmesi için */
+    /* Buton ve Kartı Birleştiren Kutu */
+    .nav-box {
+        position: relative;
+        height: 120px;
+        margin-bottom: 15px;
     }
-    
-    .menu-card {
-        background: white; padding: 20px 10px; border-radius: 15px; text-align: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee;
-        height: 120px; pointer-events: none; /* Tıklamayı arkadaki butona geçir */
-    }
-    
-    .menu-icon { font-size: 30px; display: block; margin-bottom: 5px; }
-    .menu-title { font-weight: 700; color: #2c3e50; font-size: 14px; display: block; }
-    .menu-sub { font-size: 9px; color: #95a5a6; display: block; }
 
-    /* Görünmez Butonları Kartların Üzerine Yay */
-    .stButton > button {
-        height: 120px !important; background: transparent !important;
-        color: transparent !important; border: none !important;
-        width: 100% !important; box-shadow: none !important;
+    /* Görsel Kart (Altta Kalacak) */
+    .menu-card {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: white; border-radius: 15px; text-align: center;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee;
+        z-index: 1;
     }
-    .stButton > button:active { background: rgba(0,0,0,0.05) !important; }
+    
+    .menu-icon { font-size: 30px; display: block; }
+    .menu-title { font-weight: 700; color: #2c3e50; font-size: 14px; margin-top: 5px; }
+    .menu-sub { font-size: 9px; color: #95a5a6; }
+
+    /* Görünmez Buton (Üstte Kalacak ve Tıklanacak) */
+    .stButton > button {
+        position: absolute; top: 0; left: 0; width: 100% !important; height: 120px !important;
+        background: transparent !important; color: transparent !important;
+        border: none !important; z-index: 2; cursor: pointer;
+    }
+    .stButton > button:hover { background: rgba(0,0,0,0.02) !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. SESSION STATE (Sekme Takibi) ---
+# --- 3. SESSION STATE ---
 if "active_tab" not in st.session_state:
     st.session_state.active_tab = "rehber"
 
-# --- 4. YANIT MOTORU ---
-BILGI_BANKASI = {
-    "yemek": {"anahtarlar": ["yemek", "restoran", "pizza"], "cevap": "🍕 **Pizza:** Cunda Uno.\n🥪 **Tost:** Tostuyevski."},
-    "tost": {"anahtarlar": ["tost", "tostçu"], "cevap": "Ayvalık'ta tost denince **Tostuyevski**!"},
-    "plaj": {"anahtarlar": ["plaj", "deniz"], "cevap": "🏖️ **Öneri:** Badavut veya Ortunç Koyu."},
-}
-
-def yanıt_uret(soru):
-    soru_low = soru.lower()
-    for kategori, icerik in BILGI_BANKASI.items():
-        if any(anahtar in soru_low for anahtar in icerik["anahtarlar"]): return icerik["cevap"]
-    try:
-        sys_msg = "Sen Detayvalık Villa asistanısın. Kısa cevap ver."
-        response = st.session_state.model.generate_content(f"{sys_msg}\n\nSoru: {soru}")
-        return response.text
-    except: return "Şu an bağlantıda bir sorun var dostum."
-
-# --- 5. ÜST PANEL ---
+# --- 4. ÜST PANEL ---
 st.markdown(f'<div class="main-header"><div class="beta-badge">Beta 1.2</div><h1>🏠 Detayvalık Asistanı</h1><p>Ayvalık Tatil Rehberinize Hoş Geldiniz</p></div>', unsafe_allow_html=True)
 
-# --- 6. 2x2 KARE MENÜ (GÖRSEL TABAKA) ---
-st.markdown("""
-    <div class="menu-grid">
-        <div class="menu-card"><span class="menu-icon">📍</span><span class="menu-title">Rehber</span><span class="menu-sub">Lezzet & Plajlar</span></div>
-        <div class="menu-card"><span class="menu-icon">🤖</span><span class="menu-title">Asistan</span><span class="menu-sub">Yapay Zeka Sohbet</span></div>
-        <div class="menu-card"><span class="menu-icon">🎉</span><span class="menu-title">Etkinlik</span><span class="menu-sub">Konser & Ajanda</span></div>
-        <div class="menu-card"><span class="menu-icon">💊</span><span class="menu-title">Eczane</span><span class="menu-sub">Nöbetçi Listesi</span></div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# --- 7. GÖRÜNMEZ BUTONLAR (İŞLEV TABAKASI) ---
+# --- 5. 2x2 TIKLANABİLİR MENÜ ---
 col1, col2 = st.columns(2)
+
 with col1:
-    if st.button(" ", key="btn_rehber"): st.session_state.active_tab = "rehber"; st.rerun()
-    if st.button(" ", key="btn_etkinlik"): st.session_state.active_tab = "etkinlik"; st.rerun()
+    # REHBER KARTI
+    st.markdown('<div class="nav-box"><div class="menu-card"><span class="menu-icon">📍</span><span class="menu-title">Rehber</span><span class="menu-sub">Lezzet & Plajlar</span></div>', unsafe_allow_html=True)
+    if st.button(" ", key="btn_rehber"):
+        st.session_state.active_tab = "rehber"
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # ETKİNLİK KARTI
+    st.markdown('<div class="nav-box"><div class="menu-card"><span class="menu-icon">🎉</span><span class="menu-title">Etkinlik</span><span class="menu-sub">Konser & Ajanda</span></div>', unsafe_allow_html=True)
+    if st.button(" ", key="btn_etkinlik"):
+        st.session_state.active_tab = "etkinlik"
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
 with col2:
-    if st.button(" ", key="btn_asistan"): st.session_state.active_tab = "asistan"; st.rerun()
-    if st.button(" ", key="btn_eczane"): st.session_state.active_tab = "eczane"; st.rerun()
+    # ASİSTAN KARTI
+    st.markdown('<div class="nav-box"><div class="menu-card"><span class="menu-icon">🤖</span><span class="menu-title">Asistan</span><span class="menu-sub">Yapay Zeka Sohbet</span></div>', unsafe_allow_html=True)
+    if st.button(" ", key="btn_asistan"):
+        st.session_state.active_tab = "asistan"
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # ECZANE KARTI
+    st.markdown('<div class="nav-box"><div class="menu-card"><span class="menu-icon">💊</span><span class="menu-title">Eczane</span><span class="menu-sub">Nöbetçi Listesi</span></div>', unsafe_allow_html=True)
+    if st.button(" ", key="btn_eczane"):
+        st.session_state.active_tab = "eczane"
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.divider()
 
-# --- 8. İÇERİK ALANI ---
+# --- 6. İÇERİK ALANI ---
 tab = st.session_state.active_tab
 
 if tab == "rehber":
@@ -108,15 +110,12 @@ if tab == "rehber":
 
 elif tab == "asistan":
     st.subheader("🤖 Detayvalık AI Asistan")
-    if "messages" not in st.session_state: st.session_state.messages = [{"role":"assistant","content":"Selam dostum! Sorunu sorabilirsin."}]
+    if "messages" not in st.session_state: st.session_state.messages = [{"role":"assistant","content":"Selam dostum! Ayvalık hakkında sorun varsa buradayım."}]
     for m in st.session_state.messages:
         with st.chat_message(m["role"]): st.markdown(m["content"])
     if p := st.chat_input("Nereye gidelim?"):
         st.session_state.messages.append({"role":"user","content":p})
-        with st.chat_message("user"): st.markdown(p)
-        with st.chat_message("assistant"):
-            c = yanıt_uret(p); st.markdown(c)
-            st.session_state.messages.append({"role":"assistant","content":c})
+        st.rerun()
 
 elif tab == "etkinlik":
     st.subheader("🎉 Yaklaşan Etkinlikler")
