@@ -3,16 +3,16 @@ import google.generativeai as genai
 from datetime import datetime, timedelta
 import random
 
-# --- 1. YAPILANDIRMA ---
+# --- 1. YAPILANDIRMA (Hata Yönetimi Geliştirildi) ---
 try:
     if "GEMINI_API_KEY" in st.secrets:
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
         if "model" not in st.session_state:
             st.session_state.model = genai.GenerativeModel('gemini-1.5-flash')
     else:
-        st.error("API Key Eksik!")
-except:
-    st.error("Bağlantı Hatası!")
+        st.error("⚠️ Gemini API Key 'secrets.toml' dosyasında bulunamadı!")
+except Exception as e:
+    st.error(f"⚠️ Bağlantı Hatası: {e}")
 
 st.set_page_config(page_title="Detayvalık Asistanı", layout="centered", page_icon="🏡")
 
@@ -54,7 +54,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. VERİ TABANI ---
+# --- 3. BİLGİ BANKASI ---
 BILGI_BANKASI = {
     "yemek": {
         "anahtarlar": ["yemek", "ne yiyelim", "acıktım", "restoran", "mutfak", "lezzet", "açım"],
@@ -74,54 +74,67 @@ BILGI_BANKASI = {
     }
 }
 
+# --- 4. AKILLI CEVAP MOTORU (HİBRİT GÜNCELLEME) ---
+def yanıt_uret(soru):
+    soru_low = soru.lower()
+    
+    # Adım 1: Bilgi Bankası Taraması
+    for kategori, icerik in BILGI_BANKASI.items():
+        if any(anahtar in soru_low for anahtar in icerik["anahtarlar"]):
+            return icerik["cevap"]
+            
+    # Adım 2: Gemini ile Sosyal Zeka ve Genel Bilgi
+    try:
+        sys_msg = """
+        Sen Detayvalık Villa'nın dijital asistanısın. Samimi, neşeli ve gerçek bir Ayvalıklı gibi konuşursun.
+        - Misafir selam verirse sıcak bir karşılama yap (Selam dostum, hoş geldin vb.).
+        - Eğer rehberde olmayan bir yer sorulursa Gemini bilgilerini kullan ama üslubun hep samimi kalsın.
+        - Cevapların kısa, öz ve tatil modunda olsun.
+        - Villanın sahibi 'dostun' gibi davran.
+        """
+        response = st.session_state.model.generate_content(f"{sys_msg}\n\nMisafir: {soru}")
+        return response.text
+    except:
+        # Adım 3: Akıllı Geri Çekilme (Fallback)
+        return ("Selam dostum! Şu an kısa süreli bir bağlantı sorunu yaşıyorum ama ben buradayım. "
+                "İstersen sana Ayvalık'ın efsane **tostçularını**, en güzel **plajlarını** veya akşam yemeği için **restoran** önerilerimi anlatabilirim. "
+                "Neyle başlayalım?")
+
+# --- ANA EKRAN ---
 st.markdown('<div class="main-header"><h1>🏠 Detayvalık Asistanı</h1><p style="opacity: 0.8;">Ayvalık Tatil Rehberinize Hoş Geldiniz</p></div>', unsafe_allow_html=True)
 
 t_rehber, t_ai, t_etkinlik, t_eczane = st.tabs(["📍 Rehber", "🤖 Asistan", "🎉 Etkinlik", "💊 Eczane"])
 
-# --- 4. AKILLI CEVAP MOTORU ---
-def yanıt_uret(soru):
-    soru_low = soru.lower()
-    for kategori, icerik in BILGI_BANKASI.items():
-        if any(anahtar in soru_low for anahtar in icerik["anahtarlar"]):
-            return icerik["cevap"]
-    try:
-        sys_msg = "Sen Detayvalık Villa asistanı samimi bir Ayvalıklısın. Kısa ve öz cevap ver."
-        response = st.session_state.model.generate_content(f"{sys_msg}\n\nSoru: {soru}")
-        return response.text
-    except:
-        return "Dostum şu an biraz dalgınım, 1-2 dakika sonra tekrar sorar mısın?"
-
 # --- SEKME 1: REHBER ---
 with t_rehber:
-    # 1. Günün Önerisi
     st.markdown(f"""<div class="info-card">💡 <b>Günün Önerisi:</b><br>{random.choice(["Badavut'ta gün batımını izlemeden dönme!", "Tostuyevski'de karışık tost denemelisin.", "Kaktüs Cunda'da kahve molası ver."])}</div>""", unsafe_allow_html=True)
-    
-    # 2. Wi-Fi Bilgisi
     st.markdown("""<div class="info-card" style="border-left-color: #2c5364;">🌐 <b>Wi-Fi Bilgileri:</b><br>Ağ Adı: <b>Detayvalik_Villa</b><br>Şifre: <b>ayvalik2026</b></div>""", unsafe_allow_html=True)
-    
-    # 3. Ev Kuralları
     st.markdown("""<div class="info-card" style="border-left-color: #a04747;">📜 <b>Konaklama Kurallarımız:</b><br>
     • 🤫 <b>Gece 00:00'dan sonra</b> dış alanlarda gürültü yapılmaması rica olunur.<br>
-    • ❄️ <b>Evden çıkarken</b> klimaların kapatılması rica olunur (Doğa dostu villa!).<br>
+    • ❄️ <b>Evden çıkarken</b> klimaların kapatılması rica olunur.<br>
     • 🚭 <b>Kapalı alanlarda</b> sigara içilmesi kesinlikle yasaktır.<br>
     • 🔑 Giriş ve çıkış saatleri için asistana danışabilirsiniz.</div>""", unsafe_allow_html=True)
 
-# --- SEKME 2: ASİSTAN ---
+# --- SEKME 2: ASİSTAN (GELİŞMİŞ SOHBET) ---
 with t_ai:
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "Selam dostum! Ayvalık hakkında ne bilmek istersin?"}]
+        st.session_state.messages = [{"role": "assistant", "content": "Selam dostum! Detayvalık'a hoş geldin. Ayvalık'ın tadını çıkarman için sana nasıl yardımcı olabilirim?"}]
     
-    chat_container = st.container()
-    
+    # Sohbet Geçmişini Görüntüle
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+            
+    # Kullanıcı Girişi
     if prompt := st.chat_input("Nereye gidelim dostum?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        cevap = yanıt_uret(prompt)
-        st.session_state.messages.append({"role": "assistant", "content": cevap})
-
-    with chat_container:
-        for msg in st.session_state.messages:
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
+        with st.chat_message("user"):
+            st.markdown(prompt)
+            
+        with st.chat_message("assistant"):
+            cevap = yanıt_uret(prompt)
+            st.markdown(cevap)
+            st.session_state.messages.append({"role": "assistant", "content": cevap})
 
 # --- SEKME 3: ETKİNLİKLER ---
 with t_etkinlik:
