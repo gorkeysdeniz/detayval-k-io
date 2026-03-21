@@ -1,6 +1,6 @@
 import streamlit as st
 import google.generativeai as genai
-from datetime import datetime, timedelta
+from datetime import datetime
 import random
 
 # --- 1. YAPILANDIRMA ---
@@ -9,98 +9,130 @@ try:
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
         if "model" not in st.session_state:
             st.session_state.model = genai.GenerativeModel('gemini-1.5-flash')
-    else:
-        st.error("⚠️ Gemini API Key Eksik!")
-except Exception as e:
-    st.error(f"⚠️ Bağlantı Hatası: {e}")
+except:
+    pass
 
 st.set_page_config(page_title="Detayvalık Asistanı", layout="centered", page_icon="🏡")
 
-# --- 2. MODERN TASARIM (CSS) ---
+# --- 2. GELİŞMİŞ GÖRSEL TASARIM (CSS) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+    html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #f0f2f6; }
+    
+    /* Ana Başlık */
     .main-header {
-        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-        color: white; padding: 40px 20px; border-radius: 20px; text-align: center; margin-bottom: 30px;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white; padding: 30px 20px; border-radius: 25px;
+        text-align: center; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
+    
+    /* Kare Menü Kartları */
+    .menu-container {
+        display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px;
+    }
+    .menu-card {
+        background: white; padding: 25px 15px; border-radius: 20px;
+        text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease; border: 1px solid #eee; cursor: pointer;
+    }
+    .menu-card:hover {
+        transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        border-color: #2a5298;
+    }
+    .menu-icon { font-size: 40px; margin-bottom: 10px; display: block; }
+    .menu-title { font-weight: 800; color: #2c3e50; font-size: 16px; }
+    .menu-sub { font-size: 11px; color: #7f8c8d; margin-top: 5px; }
+
+    /* Bilgi Kartları */
     .info-card {
-        background: #ffffff; padding: 20px; border-radius: 15px; border-left: 5px solid #4F6F52;
-        margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #333;
+        background: white; padding: 18px; border-radius: 15px;
+        border-left: 5px solid #2a5298; margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
-    .stTabs [data-baseweb="tab"] { height: 60px; font-size: 18px !important; font-weight: 600; color: #2c5364; }
-    .stChatMessage { border-radius: 20px !important; background-color: #f8f9fa !important; padding: 15px !important; }
+    
+    /* Sekme Tasarımı */
+    .stTabs [data-baseweb="tab"] { height: 50px; font-weight: 600; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. BİLGİ BANKASI ---
+# --- 3. VERİ VE MANTIK ---
 BILGI_BANKASI = {
-    "yemek": {
-        "anahtarlar": ["yemek", "ne yiyelim", "acıktım", "restoran", "mutfak", "lezzet", "açım", "pizza"],
-        "cevap": "Dostum Ayvalık'ta aç kalman imkansız! \n\n🍕 **Pizza:** Cunda Uno veya Küçük İtalya.\n🥪 **Tost:** Tostuyevski (Favorim).\n🍰 **Tatlı:** Nona Cunda.\n🍝 **Akşam:** Pizza Teos veya Tino Pizza."
-    },
-    "tost": {
-        "anahtarlar": ["tost", "tostçu", "tostuyevski", "aşkın"],
-        "cevap": "Ayvalık'ta tost denince akla gelen ilk yer **Tostuyevski**! Ayrıca **Aşkın Tost Evi** ve **Tadım Tost Evi** de efsanedir."
-    },
-    "cafe": {
-        "anahtarlar": ["cafe", "kahve", "tatlı", "kafe", "coffee", "pinos", "nona", "crew"],
-        "cevap": "Kahve molası için favorilerim: \n\n☕ **Pinos Cafe:** Villaya çok yakın.\n🧁 **Nona Cunda:** Tatlıları harika.\n⚡ **Crew Coffee:** Modern kahve.\n🌵 **Kaktüs Cunda:** En sevdiğim!"
-    },
-    "plaj": {
-        "anahtarlar": ["plaj", "deniz", "beach", "yüzme", "badavut", "sarımsaklı"],
-        "cevap": "🏖️ **Ücretsiz:** Badavut (Favorim!), Sarımsaklı ve Ortunç Koyu. \n💎 **Ücretli:** Ayvalık Sea Long, Ajlan, Kesebir ve Scala Beach."
-    }
+    "yemek": {"anahtarlar": ["yemek", "ne yiyelim", "acıktım", "restoran", "pizza"], "cevap": "🍕 **Pizza:** Cunda Uno.\n🥪 **Tost:** Tostuyevski.\n🍝 **Akşam:** Pizza Teos veya Tino."},
+    "tost": {"anahtarlar": ["tost", "tostçu"], "cevap": "Ayvalık'ta tost denince **Tostuyevski** tek geçer!"},
+    "plaj": {"anahtarlar": ["plaj", "deniz", "beach"], "cevap": "🏖️ **Öneri:** Badavut Koyu veya Ortunç Koyu."},
 }
 
-# --- 4. AKILLI CEVAP MOTORU (HATA DÜZELTİLDİ) ---
 def yanıt_uret(soru):
     soru_low = soru.lower()
-    
-    # ADIM 1: Önce Bilgi Bankasında var mı bak? Varsa DİREKT dön.
     for kategori, icerik in BILGI_BANKASI.items():
-        if any(anahtar in soru_low for anahtar in icerik["anahtarlar"]):
-            return icerik["cevap"]
-            
-    # ADIM 2: Bilgi bankasında yoksa Gemini'yi dene.
+        if any(anahtar in soru_low for anahtar in icerik["anahtarlar"]): return icerik["cevap"]
     try:
-        sys_msg = "Sen Detayvalık Villa asistanı samimi bir Ayvalıklısın. Kısa ve öz cevap ver. Selam verenle selamlaş."
+        sys_msg = "Sen Detayvalık Villa asistanı samimi bir Ayvalıklısın. Kısa cevap ver."
         response = st.session_state.model.generate_content(f"{sys_msg}\n\nSoru: {soru}")
         return response.text
     except:
-        # Gemini hata verirse en son çare fallback.
-        return ("Selam dostum! Şu an biraz yoğunum sanırım ama Ayvalık rehberim hala aktif. "
-                "Bana **yemek**, **tost** veya **plaj** gibi konuları sorabilirsin!")
+        return "Selam dostum! Şu an biraz yoğunum, rehber sekmelerime göz atabilirsin!"
 
-# --- ARAYÜZ ---
-st.markdown('<div class="main-header"><h1>🏠 Detayvalık Asistanı</h1><p style="opacity: 0.8;">Ayvalık Tatil Rehberinize Hoş Geldiniz</p></div>', unsafe_allow_html=True)
+# --- 4. ARAYÜZ BAŞLANGIÇ ---
+st.markdown('<div class="main-header"><h1>🏠 Detayvalık Rehberi</h1><p>Ayvalık Tatilini Güzelleştirelim</p></div>', unsafe_allow_html=True)
+
+# --- 5. GÖRSEL KARE MENÜ (GİYDİRME) ---
+# Session State ile sayfa kontrolü
+if "active_tab" not in st.session_state:
+    st.session_state.active_tab = 0
+
+st.markdown("""
+    <div class="menu-container">
+        <div class="menu-card">
+            <span class="menu-icon">📍</span>
+            <span class="menu-title">Rehber</span>
+            <span class="menu-sub">Lezzet & Plajlar</span>
+        </div>
+        <div class="menu-card">
+            <span class="menu-icon">🤖</span>
+            <span class="menu-title">Asistan</span>
+            <span class="menu-sub">Yapay Zeka Sohbet</span>
+        </div>
+        <div class="menu-card">
+            <span class="menu-icon">🎉</span>
+            <span class="menu-title">Etkinlik</span>
+            <span class="menu-sub">Konser & Ajanda</span>
+        </div>
+        <div class="menu-card">
+            <span class="menu-icon">💊</span>
+            <span class="menu-title">Eczane</span>
+            <span class="menu-sub">Nöbetçi Listesi</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# --- 6. İÇERİK SEKMELERİ ---
 t_rehber, t_ai, t_etkinlik, t_eczane = st.tabs(["📍 Rehber", "🤖 Asistan", "🎉 Etkinlik", "💊 Eczane"])
 
 with t_rehber:
-    st.markdown(f"""<div class="info-card">💡 <b>Günün Önerisi:</b><br>{random.choice(["Badavut'ta gün batımını izlemeden dönme!", "Tostuyevski'de karışık tost denemelisin.", "Kaktüs Cunda'da kahve molası ver."])}</div>""", unsafe_allow_html=True)
-    st.markdown("""<div class="info-card" style="border-left-color: #2c5364;">🌐 <b>Wi-Fi Bilgileri:</b><br>Ağ Adı: <b>Detayvalik_Villa</b><br>Şifre: <b>ayvalik2026</b></div>""", unsafe_allow_html=True)
+    st.markdown(f"""<div class="info-card">💡 <b>Günün Önerisi:</b><br>{random.choice(["Badavut'ta gün batımı!", "Tostuyevski'de karışık!", "Kaktüs Cunda'da kahve!"])}</div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="info-card" style="border-left-color: #2c3e50;">🌐 <b>Wi-Fi:</b><br>Ağ: <b>Detayvalik_Villa</b> | Şifre: <b>ayvalik2026</b></div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="info-card" style="border-left-color: #e67e22;">📜 <b>Kural:</b> Gece 00:00'dan sonra sessizlik rica olunur.</div>""", unsafe_allow_html=True)
 
 with t_ai:
     if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "Selam dostum! Ayvalık hakkında ne bilmek istersin?"}]
+        st.session_state.messages = [{"role": "assistant", "content": "Selam dostum! Ayvalık hakkında sorun varsa buradayım."}]
     
     for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+        with st.chat_message(msg["role"]): st.markdown(msg["content"])
             
-    if prompt := st.chat_input("Nereye gidelim dostum?"):
+    if prompt := st.chat_input("Nereye gidelim?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+        with st.chat_message("user"): st.markdown(prompt)
         with st.chat_message("assistant"):
             cevap = yanıt_uret(prompt)
             st.markdown(cevap)
             st.session_state.messages.append({"role": "assistant", "content": cevap})
 
 with t_etkinlik:
-    st.subheader("📅 Yaklaşan Etkinlikler")
-    st.markdown("""<div class="info-card">🎤 <b>Teoman Konseri</b><br>🗓 24 Mart 2026</div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="info-card">🎤 <b>Teoman</b><br>🗓 24 Mart 2026</div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="info-card">🎸 <b>Pinhani</b><br>🗓 27 Mart 2026</div>""", unsafe_allow_html=True)
 
 with t_eczane:
     st.link_button("💊 Nöbetçi Eczane Listesi", "https://www.balikesireczaciodasi.org.tr/nobetci-eczaneler", use_container_width=True)
