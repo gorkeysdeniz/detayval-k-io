@@ -4,11 +4,11 @@ import random
 # --- 1. YAPILANDIRMA ---
 st.set_page_config(page_title="Detayvalık Asistanı Beta 1.2", layout="centered", page_icon="🏡")
 
-# --- 2. SESSION STATE (Sayfa Takibi) ---
+# --- 2. SESSION STATE ---
 if "secili_sayfa" not in st.session_state:
     st.session_state.secili_sayfa = "rehber"
 
-# --- 3. CSS: SABİT 2x2 DÜZEN VE BUTON TASARIMI ---
+# --- 3. CSS: MOBİLDE ZORUNLU 2x2 GRID ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
@@ -19,22 +19,21 @@ st.markdown("""
         color: white; padding: 25px 10px; border-radius: 20px; text-align: center; margin-bottom: 25px;
     }
 
-    /* 2x2 Yerleşimi Sağlayan Kap (Flexbox) */
-    .menu-wrapper {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        justify-content: center;
-        margin-bottom: 20px;
+    /* Streamlit'in kolonlarını mobilde bile yan yana tutmaya zorlayan sihirli kod */
+    [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
     }
 
-    /* Her bir butonun alanı (Genişliği %48 yaparak yan yana 2 tane sığdırıyoruz) */
-    .menu-container {
-        width: 48%; 
-        min-width: 140px;
+    [data-testid="stColumn"] {
+        width: calc(50% - 5px) !important; /* Ekranın yarısını kapla */
+        min-width: calc(50% - 5px) !important;
+        flex: 1 1 calc(50% - 5px) !important;
     }
 
-    /* Streamlit Butonlarını Karta Dönüştür */
+    /* Buton Tasarımı */
     div.stButton > button {
         background-color: white !important;
         color: #2c3e50 !important;
@@ -47,29 +46,18 @@ st.markdown("""
         flex-direction: column !important;
         align-items: center !important;
         justify-content: center !important;
-        transition: all 0.2s ease !important;
     }
     
-    div.stButton > button:active {
-        transform: scale(0.95) !important;
-        background-color: #f8f9fa !important;
-    }
+    div.stButton > button:active { transform: scale(0.95) !important; background-color: #f8f9fa !important; }
+    div.stButton > button p { font-weight: 700 !important; font-size: 15px !important; line-height: 1.4 !important; }
 
-    div.stButton > button p {
-        font-weight: 700 !important;
-        font-size: 15px !important;
-        white-space: pre-wrap !important;
-    }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 4. ÜST PANEL ---
 st.markdown('<div class="main-header"><h1>🏠 Detayvalık Asistanı</h1><p>Ayvalık Tatil Rehberinize Hoş Geldiniz</p></div>', unsafe_allow_html=True)
 
-# --- 5. SABİT 2x2 BUTON MENÜSÜ ---
-# HTML Wrapper kullanarak butonları hizalıyoruz
-st.markdown('<div class="menu-wrapper">', unsafe_allow_html=True)
-
+# --- 5. 2x2 BUTON DÜZENİ ---
 col1, col2 = st.columns(2)
 
 with col1:
@@ -90,11 +78,9 @@ with col2:
         st.session_state.secili_sayfa = "eczane"
         st.rerun()
 
-st.markdown('</div>', unsafe_allow_html=True)
-
 st.divider()
 
-# --- 6. İÇERİK ALANI (Anında Geçiş) ---
+# --- 6. İÇERİK ALANI ---
 sayfa = st.session_state.secili_sayfa
 
 if sayfa == "rehber":
@@ -106,7 +92,7 @@ if sayfa == "rehber":
 
 elif sayfa == "asistan":
     st.subheader("🤖 Detayvalık AI Asistan")
-    st.chat_message("assistant").write("Selam dostum! Ayvalık hakkında ne bilmek istersin?")
+    st.chat_message("assistant").write("Selam! Ayvalık hakkında ne bilmek istersin?")
     st.chat_input("Sorunu buraya yaz...")
 
 elif sayfa == "etkinlik":
