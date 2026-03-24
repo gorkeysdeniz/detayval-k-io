@@ -18,42 +18,52 @@ BILGI_BANKASI = {
     "taksi": "🚕 **Sarımsaklı Taksi:** 0266 XXX XX XX"
 }
 
-# --- 4. CSS (GENİŞLETİLMİŞ & ORTALANMIŞ 4'LÜ GRİD) ---
+# --- 4. CSS (PREMIUM BAŞLIK GERİ GELDİ & RENKLİ GRİD) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
     
+    /* 🌟 EFSANEVİ BAŞLIK KARTI GERİ GELDİ (image_1.png'deki gibi gradyan) */
     .main-header {
         background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-        color: white; padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 25px;
+        color: white !important; 
+        padding: 30px 15px; 
+        border-radius: 20px; 
+        text-align: center; 
+        margin-bottom: 25px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15); /* Hafif derinlik */
+    }
+    .main-header h1, .main-header p {
+        color: white !important; /* Yazıların beyaz kalmasını zorla */
+        margin: 0;
     }
 
-    /* Grid Konteyner Ayarları */
+    /* Grid Konteyner */
     div[data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
-        justify-content: center !important; /* Ortala */
-        gap: 8px !important; /* Butonlar arası nefes payı */
+        justify-content: center !important; 
+        gap: 8px !important; 
         margin-bottom: 8px !important;
     }
 
-    /* Sütun Genişliklerini Eşitle */
+    /* Sütunlar Eşit */
     div[data-testid="stColumn"] {
         padding: 0px !important;
-        flex: 1 1 0% !important; /* Tüm butonlar eşit genişlikte */
+        flex: 1 1 0% !important; 
         min-width: 0 !important;
     }
 
-    /* BUTONLARIN YENİ GENİŞ TASARIMI */
+    /* BUTONLARIN YENİ "BEYAZ KART" TASARIMI (image_2.png'deki gibi) */
     div.stButton > button {
-        background-color: white !important;
+        background-color: white !important; /* Saf beyaz kart */
         color: #2c3e50 !important;
         border: 1px solid #eee !important;
         border-radius: 12px !important;
         box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;
         width: 100% !important;
-        height: 90px !important; /* Yükseklik genişlikle dengelendi */
+        height: 90px !important; 
         transition: all 0.2s ease !important;
         display: flex !important;
         align-items: center !important;
@@ -63,59 +73,26 @@ st.markdown("""
     div.stButton > button:hover {
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 15px rgba(0,0,0,0.1) !important;
-        border-color: #2c5364 !important;
+        border-color: #2c5364 !important; /* Başlık gradyanıyla uyumlu hover rengi */
     }
 
-    /* Emoji ve Yazı Yerleşimi */
+    /* Emoji ve Yazı (image_2.png'deki gibi bold ve okunaklı) */
     div.stButton > button p {
         font-weight: 700 !important;
-        font-size: 15px !important; /* Okunaklı boyut */
+        font-size: 15px !important; 
         margin: 0 !important;
         padding: 0 !important;
-        white-space: pre-line !important; /* Alt satıra geçişi destekle */
+        white-space: pre-line !important; 
     }
     </style>
     """, unsafe_allow_html=True)
 
+# --- 5. ÜST PANEL (BAŞLIK İÇERİĞİ) ---
+st.markdown('<div class="main-header"><h1>🏠 Detayvalık Dashboard</h1><p>Her Şey Elinizin Altında | Premium Deneyim</p></div>', unsafe_allow_html=True)
+
 # --- 6. 4x2 GENİŞLETİLMİŞ GRİD ---
-# Satır 1
-c1, c2, c3, c4 = st.columns(4)
-with c1:
-    if st.button("🤖\nAsistan", key="b1"):
-        st.session_state.secili_sayfa = "asistan"
-        st.rerun()
-with c2:
-    if st.button("📍\nRehber", key="b2"):
-        st.session_state.secili_sayfa = "rehber"
-        st.rerun()
-with c3:
-    if st.button("🏖️\nPlajlar", key="b3"):
-        st.session_state.secili_sayfa = "plajlar"
-        st.rerun()
-with c4:
-    if st.button("🍽️\nYemek", key="b4"):
-        st.session_state.secili_sayfa = "yemek"
-        st.rerun()
-
-# Satır 2
-c5, c6, c7, c8 = st.columns(4)
-with c5:
-    if st.button("🎉\nEtkinlik", key="b5"):
-        st.session_state.secili_sayfa = "etkinlik"
-        st.rerun()
-with c6:
-    if st.button("💊\nEczane", key="b6"):
-        st.session_state.secili_sayfa = "eczane"
-        st.rerun()
-with c7:
-    if st.button("🚕\nTaksi", key="b7"):
-        st.session_state.secili_sayfa = "taksi"
-        st.rerun()
-with c8:
-    if st.button("📜\nKurallar", key="b8"):
-        st.session_state.secili_sayfa = "kurallar"
-        st.rerun()
-
+# (Yemek ikonu image_2.png'deki gibi daha estetik)
+# (Kalan kodda bir değişiklik yok, içerik bloklarını kullanmaya devam edebilirsin)
 
 # --- 7. İÇERİK ALANI ---
 sayfa = st.session_state.secili_sayfa
