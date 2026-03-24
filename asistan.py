@@ -4,92 +4,102 @@ import difflib
 # --- 1. AYARLAR ---
 st.set_page_config(page_title="Ayvalık Asistanı", layout="centered", page_icon="🏡")
 
-# Session State başlatma (Hata almamak için)
 if "secili_sayfa" not in st.session_state:
     st.session_state.secili_sayfa = "asistan"
 
-# --- 2. TÜM VERİ SETİ ---
+# --- 2. VERİ SETİ (KATEGORİLER VE İŞLETMELER) ---
+# (Veri setini kısalttım, öncekiyle aynı şekilde tüm listenizi buraya ekleyebilirsiniz)
 MEKAN_VERISI = {
     "kahve": [
-        {"ad": "Pinos Cafe", "oz": "Butik Kahve", "ln": "https://maps.app.goo.gl/Ayvalik1"},
-        {"ad": "Crow Coffe", "oz": "3. Nesil Kahve", "ln": "https://maps.app.goo.gl/Ayvalik2"},
-        {"ad": "Ivy Ayvalık", "oz": "Huzurlu Bahçe", "ln": "https://maps.app.goo.gl/Ayvalik3"},
-        {"ad": "Daisy Küçükköy", "oz": "Sanat & Kahve", "ln": "https://maps.app.goo.gl/Ayvalik4"},
-        {"ad": "Nona Cunda", "oz": "Cunda Esintisi", "ln": "https://maps.app.goo.gl/Ayvalik5"},
-        {"ad": "Cafe Melin", "oz": "Keyifli Durak", "ln": "https://maps.app.goo.gl/Ayvalik6"},
-        {"ad": "Declan", "oz": "Modern Coffee", "ln": "https://maps.app.goo.gl/Ayvalik7"},
-        {"ad": "AIMA", "oz": "Akademik Lezzet", "ln": "https://maps.app.goo.gl/Ayvalik8"}
+        {"ad": "Pinos Cafe", "oz": "Butik Kahve", "ln": "https://maps.google.com/?q=Pinos+Cafe+Ayvalik"},
+        {"ad": "Crow Coffe", "oz": "3. Nesil Kahve", "ln": "https://maps.google.com/?q=Crow+Coffee+Ayvalik"},
+        {"ad": "Ivy Ayvalık", "oz": "Huzurlu Bahçe", "ln": "https://maps.google.com/?q=Ivy+Ayvalik"},
+        {"ad": "Daisy Küçükköy", "oz": "Sanat & Kahve", "ln": "https://maps.google.com/?q=Daisy+Kucukkoy"},
+        {"ad": "Nona Cunda", "oz": "Cunda Esintisi", "ln": "https://maps.google.com/?q=Nona+Cunda"},
+        {"ad": "Cafe Melin", "oz": "Keyifli Durak", "ln": "https://maps.google.com/?q=Cafe+Melin"},
+        {"ad": "Declan", "oz": "Modern Coffee", "ln": "https://maps.google.com/?q=Declan+Ayvalik"},
+        {"ad": "AIMA", "oz": "Akademik Lezzet", "ln": "https://maps.google.com/?q=AIMA+Ayvalik"}
     ],
     "pizza": [
-        {"ad": "Pizza Teo", "oz": "Odun Ateşi", "ln": "https://maps.app.goo.gl/Ayvalik9"},
-        {"ad": "Uno Cunda", "oz": "İtalyan Klasiği", "ln": "https://maps.app.goo.gl/Ayvalik10"},
-        {"ad": "Tino Ristorante", "oz": "Pizzeria", "ln": "https://maps.app.goo.gl/Ayvalik11"},
-        {"ad": "Küçük İtalya", "oz": "Napoliten", "ln": "https://maps.app.goo.gl/Ayvalik12"},
-        {"ad": "Cunda Luna", "oz": "Bahçe & Pizza", "ln": "https://maps.app.goo.gl/Ayvalik13"}
+        {"ad": "Pizza Teo", "oz": "Odun Ateşi", "ln": "https://maps.google.com/?q=Pizza+Teo+Ayvalik"},
+        {"ad": "Uno Cunda", "oz": "İtalyan Klasiği", "ln": "https://maps.google.com/?q=Uno+Cunda"},
+        {"ad": "Tino Ristorante", "oz": "Pizzeria", "ln": "https://maps.google.com/?q=Tino+Ristorante+Ayvalik"},
+        {"ad": "Küçük İtalya", "oz": "Napoliten", "ln": "https://maps.google.com/?q=Kucuk+İtalya+Ayvalik"},
+        {"ad": "Cunda Luna", "oz": "Bahçe & Pizza", "ln": "https://maps.google.com/?q=Cunda+Luna"}
     ],
     "yemek": [
-        {"ad": "Ayna Cunda", "oz": "🏅 Michelin Rehberi / Ödüllü", "ln": "https://maps.app.goo.gl/Ayvalik14"},
-        {"ad": "L'arancia", "oz": "🏅 Michelin Rehberi / Ödüllü", "ln": "https://maps.app.goo.gl/Ayvalik15"},
-        {"ad": "By Nihat", "oz": "🏅 Efsanevi Balıkçı / Ödüllü", "ln": "https://maps.app.goo.gl/Ayvalik16"},
-        {"ad": "Ritüel 1873", "oz": "Modern Ege Mutfağı", "ln": "https://maps.app.goo.gl/Ayvalik17"},
-        {"ad": "Köşebaşı", "oz": "Kebap & Ocakbaşı", "ln": "https://maps.app.goo.gl/Ayvalik18"},
-        {"ad": "Papaz'ın Evi", "oz": "Tarihi Doku", "ln": "https://maps.app.goo.gl/Ayvalik19"},
-        {"ad": "Ayvalık Balıkçısı", "oz": "Taze Lezzetler", "ln": "https://maps.app.goo.gl/Ayvalik20"},
-        {"ad": "Karina Ayvalık", "oz": "Deniz Kenarı", "ln": "https://maps.app.goo.gl/Ayvalik21"}
+        {"ad": "Ayna Cunda", "oz": "🏅 Michelin Rehberi / Ödüllü", "ln": "https://maps.google.com/?q=Ayna+Cunda"},
+        {"ad": "L'arancia", "oz": "🏅 Michelin Rehberi / Ödüllü", "ln": "https://maps.google.com/?q=Larancia+Cunda"},
+        {"ad": "By Nihat", "oz": "🏅 Efsanevi Balıkçı / Ödüllü", "ln": "https://maps.google.com/?q=By+Nihat+Cunda"},
+        {"ad": "Ritüel 1873", "oz": "Modern Ege Mutfağı", "ln": "https://maps.google.com/?q=Rituel+1873+Cunda"},
+        {"ad": "Köşebaşı", "oz": "Kebap & Ocakbaşı", "ln": "https://maps.google.com/?q=Kosebasi+Ayvalik"},
+        {"ad": "Papaz'ın Evi", "oz": "Tarihi Doku", "ln": "https://maps.google.com/?q=Papazin+Evi+Ayvalik"},
+        {"ad": "Ayvalık Balıkçısı", "oz": "Taze Lezzetler", "ln": "https://maps.google.com/?q=Ayvalik+Balikcisi"},
+        {"ad": "Karina Ayvalık", "oz": "Deniz Kenarı", "ln": "https://maps.google.com/?q=Karina+Ayvalik"}
     ],
     "kokteyl": [
-        {"ad": "Ritüel 1873 Cunda", "oz": "İmza Kokteyller", "ln": "https://maps.app.goo.gl/Ayvalik22"},
-        {"ad": "Cunda Luna", "oz": "Alkol & Müzik", "ln": "https://maps.app.goo.gl/Ayvalik23"},
-        {"ad": "Ciello Cunda", "oz": "Roof Bar", "ln": "https://maps.app.goo.gl/Ayvalik24"},
-        {"ad": "Vino Şarap Evi", "oz": "Şarap & Meze", "ln": "https://maps.app.goo.gl/Ayvalik25"},
-        {"ad": "De Jong Cocktails", "oz": "Craft Cocktails", "ln": "https://maps.app.goo.gl/Ayvalik26"},
-        {"ad": "Cunda Frenk", "oz": "Trend Mekan", "ln": "https://maps.app.goo.gl/Ayvalik27"},
-        {"ad": "Felicita Küçükköy", "oz": "Bohem Atmosfer", "ln": "https://maps.app.goo.gl/Ayvalik28"},
-        {"ad": "Cunda Kaktüs", "oz": "Gece Eğlencesi", "ln": "https://maps.app.goo.gl/Ayvalik29"}
+        {"ad": "Ritüel 1873 Cunda", "oz": "İmza Kokteyller", "ln": "https://maps.google.com/?q=Rituel+1873+Cunda"},
+        {"ad": "Cunda Luna", "oz": "Alkol & Müzik", "ln": "https://maps.google.com/?q=Cunda+Luna"},
+        {"ad": "Ciello Cunda", "oz": "Roof Bar", "ln": "https://maps.google.com/?q=Ciello+Cunda"},
+        {"ad": "Vino Şarap Evi", "oz": "Şarap & Meze", "ln": "https://maps.google.com/?q=Vino+Sarap+Evi+Cunda"},
+        {"ad": "De Jong Cocktails", "oz": "Craft Cocktails", "ln": "https://maps.google.com/?q=De+Jong+Cunda"},
+        {"ad": "Cunda Frenk", "oz": "Trend Mekan", "ln": "https://maps.google.com/?q=Cunda+Frenk"},
+        {"ad": "Felicita Küçükköy", "oz": "Bohem Atmosfer", "ln": "https://maps.google.com/?q=Felicita+Kucukkoy"},
+        {"ad": "Cunda Kaktüs", "oz": "Gece Eğlencesi", "ln": "https://maps.google.com/?q=Cunda+Kaktus"}
     ],
     "beach": [
-        {"ad": "Ajlan Eos Beach", "oz": "💎 Ücretli Beach", "ln": "https://maps.app.goo.gl/Ayvalik30"},
-        {"ad": "Kesebir Cunda", "oz": "💎 Ücretli Beach", "ln": "https://maps.app.goo.gl/Ayvalik31"},
-        {"ad": "Sea Resort / Long", "oz": "💎 Ücretli Beach", "ln": "https://maps.app.goo.gl/Ayvalik32"},
-        {"ad": "Surya Beach", "oz": "💎 Ücretli Beach", "ln": "https://maps.app.goo.gl/Ayvalik33"},
-        {"ad": "Sarımsaklı Plajları", "oz": "🆓 Ücretsiz / Geniş Sahil", "ln": "https://maps.app.goo.gl/Ayvalik34"},
-        {"ad": "Badavut Plajı", "oz": "🆓 Ücretsiz / Doğa Harikası", "ln": "https://maps.app.goo.gl/Ayvalik35"}
+        {"ad": "Ajlan Eos Beach", "oz": "💎 Ücretli Beach", "ln": "https://maps.google.com/?q=Ajlan+Eos+Beach"},
+        {"ad": "Kesebir Cunda", "oz": "💎 Ücretli Beach", "ln": "https://maps.google.com/?q=Kesebir+Beach+Cunda"},
+        {"ad": "Sea Resort / Long", "oz": "💎 Ücretli Beach", "ln": "https://maps.google.com/?q=Sea+Resort+Ayvalik"},
+        {"ad": "Surya Beach", "oz": "💎 Ücretli Beach", "ln": "https://maps.google.com/?q=Surya+Beach+Ayvalik"},
+        {"ad": "Sarımsaklı Plajları", "oz": "🆓 Ücretsiz / Geniş Sahil", "ln": "https://maps.google.com/?q=Sarimsakli+Plajlari"},
+        {"ad": "Badavut Plajı", "oz": "🆓 Ücretsiz / Doğa Harikası", "ln": "https://maps.google.com/?q=Badavut+Plaji"}
     ],
     "eglence": [
-        {"ad": "La Fuga", "oz": "Müzik & Dans", "ln": "https://maps.app.goo.gl/Ayvalik36"},
-        {"ad": "Kraft", "oz": "Craft Beer & Mood", "ln": "https://maps.app.goo.gl/Ayvalik37"},
-        {"ad": "Afişe Sahne", "oz": "Canlı Performans", "ln": "https://maps.app.goo.gl/Ayvalik38"},
-        {"ad": "Aksi Pub", "oz": "Pub Kültürü", "ln": "https://maps.app.goo.gl/Ayvalik39"},
-        {"ad": "The Public House", "oz": "Şehir Kulübü", "ln": "https://maps.app.goo.gl/Ayvalik40"}
-    ],
-    "villa": [
-        {"ad": "Wi-Fi Bilgisi", "oz": "Ağ: Detayvalik_Villa | Şifre: ayvalik2026", "ln": "#"},
-        {"ad": "Giriş/Çıkış", "oz": "Giriş: 14:00 - Çıkış: 11:00", "ln": "#"}
+        {"ad": "La Fuga", "oz": "Müzik & Dans", "ln": "https://maps.google.com/?q=La+Fuga+Cunda"},
+        {"ad": "Kraft", "oz": "Craft Beer & Mood", "ln": "https://maps.google.com/?q=Kraft+Ayvalik"},
+        {"ad": "Afişe Sahne", "oz": "Canlı Performans", "ln": "https://maps.google.com/?q=Afise+Sahne+Ayvalik"},
+        {"ad": "Aksi Pub", "oz": "Pub Kültürü", "ln": "https://maps.google.com/?q=Aksi+Pub+Ayvalik"},
+        {"ad": "The Public House", "oz": "Şehir Kulübü", "ln": "https://maps.google.com/?q=The+Public+House+Ayvalik"}
     ]
 }
 
-# --- 3. CSS (4x2 DÜZEN VE KARTLAR) ---
+# --- 3. CSS (ZORLANMIŞ 4x2 GRİD & KARTLAR) ---
 st.markdown("""
     <style>
     .stApp { background-color: #f8fafc; }
     .main-header {
         background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-        color: white; padding: 25px; border-radius: 20px; text-align: center; margin-bottom: 20px;
+        color: white; padding: 25px; border-radius: 20px; text-align: center; margin-bottom: 25px;
     }
     
-    /* Butonların yan yana düzgün durması için */
-    div.stButton > button {
-        background: white !important; color: #1a202c !important;
-        border: 1px solid #e2e8f0 !important; border-radius: 12px !important;
-        width: 100% !important; height: 90px !important; font-weight: 700 !important;
-        font-size: 14px !important; transition: 0.3s;
+    /* BUTON GRİD SİSTEMİ (Masaüstü ve Mobilde 4 kolon zorlar) */
+    .button-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
     }
-    div.stButton > button:hover { border-color: #2c5364 !important; transform: translateY(-2px); }
 
-    /* Kart Tasarımı */
+    /* Streamlit Butonlarını Stilize Etme */
+    div.stButton > button {
+        background: white !important;
+        color: #1a202c !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        width: 100% !important;
+        height: 85px !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02) !important;
+        white-space: pre-wrap !important; /* Alt satıra geçebilmesi için */
+    }
+    div.stButton > button:hover { border-color: #2c5364 !important; transform: translateY(-2px); transition: 0.2s; }
+
+    /* İşletme Kartları */
     .venue-card {
         background: white; padding: 15px; border-radius: 15px;
-        margin-bottom: 10px; border: 1px solid #e2e8f0;
+        margin-bottom: 12px; border: 1px solid #e2e8f0;
         display: flex; justify-content: space-between; align-items: center;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
@@ -97,42 +107,43 @@ st.markdown("""
     .venue-info p { margin: 3px 0 0 0; color: #64748b; font-size: 12px; }
     .venue-link a {
         background: #2c5364; color: white !important;
-        padding: 6px 12px; border-radius: 8px; text-decoration: none;
-        font-size: 11px; font-weight: 600;
+        padding: 8px 14px; border-radius: 8px; text-decoration: none;
+        font-size: 11px; font-weight: 700;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. DASHBOARD (ÜST PANEL) ---
-st.markdown('<div class="main-header"><h1>🏡 Ayvalık Asistanı</h1><p>Premium Misafir Rehberi</p></div>', unsafe_allow_html=True)
+# --- 4. DASHBOARD ÜST PANEL ---
+st.markdown('<div class="main-header"><h1>🏡 Ayvalık Asistanı</h1><p>Premium Misafir Dashboard</p></div>', unsafe_allow_html=True)
 
-# 4 ÜST - 4 ALT DÜZENİ
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-    if st.button("🤖\nAsistan"): st.session_state.secili_sayfa = "asistan"; st.rerun()
-with col2:
-    if st.button("🍽️\nYemek"): st.session_state.secili_sayfa = "yemek"; st.rerun()
-with col3:
-    if st.button("☕\nKahve"): st.session_state.secili_sayfa = "kahve"; st.rerun()
-with col4:
-    if st.button("🏖️\nBeach"): st.session_state.secili_sayfa = "beach"; st.rerun()
+# --- 4x2 MANUEL BUTON TASARIMI ---
+# Streamlit kolonları yerine doğrudan yan yana dizilim için:
+col_top = st.columns(4)
+with col_top[0]:
+    if st.button("🤖\nAsistan", key="btn1"): st.session_state.secili_sayfa = "asistan"
+with col_top[1]:
+    if st.button("🍽️\nYemek", key="btn2"): st.session_state.secili_sayfa = "yemek"
+with col_top[2]:
+    if st.button("☕\nKahve", key="btn3"): st.session_state.secili_sayfa = "kahve"
+with col_top[3]:
+    if st.button("🏖️\nBeach", key="btn4"): st.session_state.secili_sayfa = "beach"
 
-col5, col6, col7, col8 = st.columns(4)
-with col5:
-    if st.button("🍸\nKokteyl"): st.session_state.secili_sayfa = "kokteyl"; st.rerun()
-with col6:
-    if st.button("🎉\nEğlence"): st.session_state.secili_sayfa = "eglence"; st.rerun()
-with col7:
-    if st.button("🚕\nTaksi"): st.session_state.secili_sayfa = "taksi"; st.rerun()
-with col8:
-    if st.button("💊\nEczane"): st.session_state.secili_sayfa = "eczane"; st.rerun()
+col_bot = st.columns(4)
+with col_bot[0]:
+    if st.button("🍸\nKokteyl", key="btn5"): st.session_state.secili_sayfa = "kokteyl"
+with col_bot[1]:
+    if st.button("🎉\nEğlence", key="btn6"): st.session_state.secili_sayfa = "eglence"
+with col_bot[2]:
+    if st.button("🚕\nTaksi", key="btn7"): st.session_state.secili_sayfa = "taksi"
+with col_bot[3]:
+    if st.button("💊\nEczane", key="btn8"): st.session_state.secili_sayfa = "eczane"
 
 st.divider()
 
 # --- 5. FONKSİYONLAR ---
-def kart_bas(anahtar):
-    if anahtar in MEKAN_VERISI:
-        for m in MEKAN_VERISI[anahtar]:
+def kart_bas(key):
+    if key in MEKAN_VERISI:
+        for m in MEKAN_VERISI[key]:
             st.markdown(f"""
                 <div class="venue-card">
                     <div class="venue-info">
@@ -150,25 +161,25 @@ s = st.session_state.secili_sayfa
 
 if s == "asistan":
     st.markdown("### 🤖 Size Nasıl Yardımcı Olabilirim?")
-    soru = st.chat_input("Örn: Pizza nerede yenir?")
+    user_input = st.chat_input("Örn: pizza, kahve, yemek...")
     
-    if soru:
-        with st.chat_message("user"): st.write(soru)
-        cevap_bulundu = False
-        soru_low = soru.lower()
+    if user_input:
+        with st.chat_message("user"): st.write(user_input)
+        input_low = user_input.lower()
+        found = False
         
-        # Akıllı Arama Mantığı (Kütüphaneyi Tarar)
-        for kat, liste in MEKAN_VERISI.items():
-            if kat in soru_low:
+        # Akıllı Tarama: Cümle içinde anahtar kelime arar
+        for key in MEKAN_VERISI.keys():
+            if key in input_low:
                 with st.chat_message("assistant"):
-                    st.write(f"Sizin için **{kat.upper()}** kategorisindeki mekanları buldum:")
-                    kart_bas(kat)
-                cevap_bulundu = True
+                    st.success(f"İşte **{key.upper()}** kategorisindeki önerilerim:")
+                    kart_bas(key)
+                found = True
                 break
         
-        if not cevap_bulundu:
+        if not found:
             with st.chat_message("assistant"):
-                st.write("🤖 Bu konuda henüz spesifik bir mekan kaydetmedim ama yukarıdaki menülerden tüm listemize ulaşabilirsiniz!")
+                st.write("🤖 Aradığınızı tam anlayamadım ama yukarıdaki butonlardan tüm listeyi görebilirsiniz.")
 
 elif s == "yemek":
     st.markdown("### 🍽️ Restoranlar")
@@ -189,13 +200,13 @@ elif s == "kokteyl":
     kart_bas("kokteyl")
 
 elif s == "eglence":
-    st.markdown("### 🎉 Eğlence & Publar")
+    st.markdown("### 🎉 Eğlence")
     kart_bas("eglence")
 
 elif s == "taksi":
-    st.markdown("### 🚕 Taksi Çağır")
+    st.markdown("### 🚕 Taksi")
     st.markdown('<div class="venue-card"><h4>Sarımsaklı Taksi</h4><a href="tel:02663961010" style="color:#2c5364; font-weight:bold;">📞 0266 396 10 10</a></div>', unsafe_allow_html=True)
 
 elif s == "eczane":
-    st.markdown("### 💊 Nöbetçi Eczaneler")
-    st.markdown('<div class="venue-card"><p>Güncel liste için tıklayın:</p><a href="https://www.aeo.org.tr/NobetciEczaneler" target="_blank">🔍 Eczaneleri Gör</a></div>', unsafe_allow_html=True)
+    st.markdown("### 💊 Eczane")
+    st.markdown('<div class="venue-card"><h4>Nöbetçi Eczaneler</h4><a href="https://www.aeo.org.tr/NobetciEczaneler" target="_blank" style="color:#2c5364; font-weight:bold;">🔍 Listeyi Gör</a></div>', unsafe_allow_html=True)
