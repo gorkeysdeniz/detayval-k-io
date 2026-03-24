@@ -116,50 +116,6 @@ with c8:
         st.session_state.secili_sayfa = "kurallar"
         st.rerun()
 
-# --- 5. ÜST PANEL ---
-st.markdown('<div class="main-header"><h1>🏠 Detayvalık Dashboard</h1><p>Her Şey Elinizin Altında</p></div>', unsafe_allow_html=True)
-
-# --- 6. 4x2 GRİD (TOPLAM 8 MENÜ) ---
-
-# Satır 1
-c1, c2, c3, c4 = st.columns(4)
-with c1:
-    if st.button("🤖\nAsistan", key="b1"):
-        st.session_state.secili_sayfa = "asistan"
-        st.rerun()
-with c2:
-    if st.button("📍\nRehber", key="b2"):
-        st.session_state.secili_sayfa = "rehber"
-        st.rerun()
-with c3:
-    if st.button("🏖️\nPlajlar", key="b3"):
-        st.session_state.secili_sayfa = "plajlar"
-        st.rerun()
-with c4:
-    if st.button("🍽️\nYemek", key="b4"):
-        st.session_state.secili_sayfa = "yemek"
-        st.rerun()
-
-# Satır 2
-c5, c6, c7, c8 = st.columns(4)
-with c5:
-    if st.button("🎉\nEtkinlik", key="b5"):
-        st.session_state.secili_sayfa = "etkinlik"
-        st.rerun()
-with c6:
-    if st.button("💊\nEczane", key="b6"):
-        st.session_state.secili_sayfa = "eczane"
-        st.rerun()
-with c7:
-    if st.button("🚕\nTaksi", key="b7"):
-        st.session_state.secili_sayfa = "taksi"
-        st.rerun()
-with c8:
-    if st.button("📜\nKurallar", key="b8"):
-        st.session_state.secili_sayfa = "kurallar"
-        st.rerun()
-
-st.divider()
 
 # --- 7. İÇERİK ALANI ---
 sayfa = st.session_state.secili_sayfa
