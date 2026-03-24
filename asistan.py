@@ -64,60 +64,49 @@ MEKAN_VERISI = {
     ]
 }
 
-# --- 4x2 KOMPAKT BUTON GRİD SİSTEMİ ---
-# Bu yapı mobilde alt alta binmeyi engeller ve 4'lü dizilimi zorlar
-
+# --- 3. CSS (DOĞRU YAPI) ---
 st.markdown("""
     <style>
-    /* Butonları yan yana tutan ana taşıyıcı */
-    .button-container {
-        display: flex;
-        flex-wrap: nowrap; /* Alt satıra geçmeyi engelle */
-        justify-content: space-between;
-        gap: 5px;
-        margin-bottom: 10px;
+    .stApp { background-color: #f8fafc; }
+    .main-header {
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        color: white; padding: 25px; border-radius: 20px; text-align: center; margin-bottom: 25px;
     }
-    /* Her bir butonun genişliğini %25'e sabitle */
-    .stColumn {
+    
+    /* 4x2 Grid Zorlaması */
+    [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+    }
+    [data-testid="column"] {
+        width: calc(25% - 5px) !important;
+        flex: 1 1 calc(25% - 5px) !important;
         min-width: 0px !important;
     }
-    </style>
-    """, unsafe_allow_html=True)
 
-# ÜST SIRA (4 Buton)
-cols_top = st.columns(4)
-with cols_top[0]:
-    if st.button("🤖\nAsistan", key="btn1"): st.session_state.secili_sayfa = "asistan"
-with cols_top[1]:
-    if st.button("🍽️\nYemek", key="btn2"): st.session_state.secili_sayfa = "yemek"
-with cols_top[2]:
-    if st.button("☕\nKahve", key="btn3"): st.session_state.secili_sayfa = "kahve"
-with cols_top[3]:
-    if st.button("🏖️\nBeach", key="btn4"): st.session_state.secili_sayfa = "beach"
+    div.stButton > button {
+        background: white !important;
+        color: #1a202c !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        width: 100% !important;
+        height: 70px !important; /* Biraz küçülttük ki sığsın */
+        font-weight: 700 !important;
+        font-size: 11px !important;
+        white-space: pre-wrap !important;
+    }
 
-# ALT SIRA (4 Buton)
-cols_bot = st.columns(4)
-with cols_bot[0]:
-    if st.button("🍸\nKokteyl", key="btn5"): st.session_state.secili_sayfa = "kokteyl"
-with cols_bot[1]:
-    if st.button("🎉\nEğlence", key="btn6"): st.session_state.secili_sayfa = "eglence"
-with cols_bot[2]:
-    if st.button("🚕\nTaksi", key="btn7"): st.session_state.secili_sayfa = "taksi"
-with cols_bot[3]:
-    if st.button("💊\nEczane", key="btn8"): st.session_state.secili_sayfa = "eczane"
     /* İşletme Kartları */
     .venue-card {
-        background: white; padding: 15px; border-radius: 15px;
-        margin-bottom: 12px; border: 1px solid #e2e8f0;
-        display: flex; justify-content: space-between; align-items: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
-    .venue-info h4 { margin: 0; color: #1a202c; font-size: 16px; }
-    .venue-info p { margin: 3px 0 0 0; color: #64748b; font-size: 12px; }
-    .venue-link a {
-        background: #2c5364; color: white !important;
-        padding: 8px 14px; border-radius: 8px; text-decoration: none;
-        font-size: 11px; font-weight: 700;
+        background: white !important; 
+        padding: 15px !important; 
+        border-radius: 15px !important;
+        margin-bottom: 12px !important; 
+        border: 1px solid #e2e8f0 !important;
+        display: flex !important; 
+        justify-content: space-between !important; 
+        align-items: center !important;
     }
     </style>
     """, unsafe_allow_html=True)
