@@ -99,13 +99,16 @@ sayfa = st.session_state.secili_sayfa
 
 if sayfa == "asistan":
     st.subheader("🤖 Akıllı Asistan")
-    if prompt := st.chat_input("Sorunuzu buraya yazın (Örn: wifi şifresi)"):
-        with st.chat_message("user"): st.write(prompt)
+    prompt = st.chat_input("Sorunuzu buraya yazın (Örn: wifi şifresi)")
+    
+    if prompt:
+        with st.chat_message("user"): 
+            st.write(prompt)
         
-        # Fuzzy Matching (Token Harcamayan Kısım)
         bulundu = False
+        # Bilgi bankasında anahtar kelime taraması
         for anahtar in BILGI_BANKASI.keys():
-            if anahtar in prompt.lower(): # Basit kontrol veya difflib eklenebilir
+            if anahtar in prompt.lower():
                 with st.chat_message("assistant"):
                     st.success("✅ Bilgi Bankasından Yanıt:")
                     st.write(BILGI_BANKASI[anahtar])
@@ -117,3 +120,13 @@ if sayfa == "asistan":
                 st.info("🤖 Bu soruyu yapay zekaya aktarıyorum... (API Bağlantısı Bekleniyor)")
 
 elif sayfa == "rehber":
+    st.subheader("📍 Ayvalık Rehberi")
+    st.info("💡 Badavut Sahili'nde gün batımını kaçırmayın!")
+
+elif sayfa == "etkinlik":
+    st.subheader("🎉 Etkinlikler")
+    st.warning("🎤 Bu hafta sonu Cunda'da canlı müzik etkinlikleri var.")
+
+elif sayfa == "eczane":
+    st.subheader("💊 Nöbetçi Eczaneler")
+    st.link_button("Balıkesir Eczacı Odası - Nöbetçi Listesi", "https://www.balikesireczaciodasi.org.tr/nobetci-eczaneler", use_container_width=True)
