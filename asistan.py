@@ -8,7 +8,6 @@ if "secili_sayfa" not in st.session_state:
     st.session_state.secili_sayfa = "asistan"
 
 # --- 2. VERİ SETİ (KATEGORİLER VE İŞLETMELER) ---
-# (Veri setini kısalttım, öncekiyle aynı şekilde tüm listenizi buraya ekleyebilirsiniz)
 MEKAN_VERISI = {
     "kahve": [
         {"ad": "Pinos Cafe", "oz": "Butik Kahve", "ln": "https://maps.google.com/?q=Pinos+Cafe+Ayvalik"},
@@ -64,49 +63,74 @@ MEKAN_VERISI = {
     ]
 }
 
-# --- 3. CSS (DOĞRU YAPI) ---
+# --- 3. CSS (TELEFON VE MASAÜSTÜ İÇİN TAM SIĞDIRAN YAPI) ---
 st.markdown("""
     <style>
     .stApp { background-color: #f8fafc; }
+    
+    /* Sayfa kenar boşluklarını daraltıyoruz */
+    .block-container {
+        padding-left: 0.8rem !important;
+        padding-right: 0.8rem !important;
+        padding-top: 1.5rem !important;
+    }
+
     .main-header {
         background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-        color: white; padding: 25px; border-radius: 20px; text-align: center; margin-bottom: 25px;
+        color: white; padding: 20px; border-radius: 18px; text-align: center; margin-bottom: 20px;
     }
     
-    /* 4x2 Grid Zorlaması */
+    /* Mobilde 4'lü Yan Yana Dizilim Zorlaması */
     [data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important;
+        width: 100% !important;
+        gap: 5px !important;
     }
+    
     [data-testid="column"] {
-        width: calc(25% - 5px) !important;
-        flex: 1 1 calc(25% - 5px) !important;
-        min-width: 0px !important;
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
     }
 
+    /* Buton Tasarımı */
     div.stButton > button {
         background: white !important;
         color: #1a202c !important;
         border: 1px solid #e2e8f0 !important;
-        border-radius: 12px !important;
+        border-radius: 10px !important;
         width: 100% !important;
-        height: 70px !important; /* Biraz küçülttük ki sığsın */
+        height: 70px !important;
         font-weight: 700 !important;
-        font-size: 11px !important;
+        font-size: 10px !important;
         white-space: pre-wrap !important;
+        padding: 2px !important;
+        line-height: 1.1 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
     }
+    
+    div.stButton > button:hover { border-color: #2c5364 !important; }
 
     /* İşletme Kartları */
     .venue-card {
         background: white !important; 
-        padding: 15px !important; 
-        border-radius: 15px !important;
-        margin-bottom: 12px !important; 
+        padding: 12px !important; 
+        border-radius: 12px !important;
+        margin-bottom: 10px !important; 
         border: 1px solid #e2e8f0 !important;
         display: flex !important; 
         justify-content: space-between !important; 
         align-items: center !important;
+    }
+
+    .venue-info h4 { margin: 0; font-size: 14px; color: #1e293b; }
+    .venue-info p { margin: 2px 0 0 0; font-size: 11px; color: #64748b; }
+    
+    .venue-link a {
+        background: #2c5364; color: white !important;
+        padding: 6px 10px; border-radius: 6px; text-decoration: none;
+        font-size: 10px; font-weight: 700;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -115,7 +139,6 @@ st.markdown("""
 st.markdown('<div class="main-header"><h1>🏡 Ayvalık Asistanı</h1><p>Premium Misafir Dashboard</p></div>', unsafe_allow_html=True)
 
 # --- 4x2 MANUEL BUTON TASARIMI ---
-# Streamlit kolonları yerine doğrudan yan yana dizilim için:
 col_top = st.columns(4)
 with col_top[0]:
     if st.button("🤖\nAsistan", key="btn1"): st.session_state.secili_sayfa = "asistan"
@@ -203,8 +226,8 @@ elif s == "eglence":
 
 elif s == "taksi":
     st.markdown("### 🚕 Taksi")
-    st.markdown('<div class="venue-card"><h4>Sarımsaklı Taksi</h4><a href="tel:02663961010" style="color:#2c5364; font-weight:bold;">📞 0266 396 10 10</a></div>', unsafe_allow_html=True)
+    st.markdown('<div class="venue-card"><h4>Sarımsaklı Taksi</h4><p>7/24 Hizmet</p><div class="venue-link"><a href="tel:02663961010">📞 ARA</a></div></div>', unsafe_allow_html=True)
 
 elif s == "eczane":
     st.markdown("### 💊 Eczane")
-    st.markdown('<div class="venue-card"><h4>Nöbetçi Eczaneler</h4><a href="https://www.aeo.org.tr/NobetciEczaneler" target="_blank" style="color:#2c5364; font-weight:bold;">🔍 Listeyi Gör</a></div>', unsafe_allow_html=True)
+    st.markdown('<div class="venue-card"><h4>Nöbetçi Eczaneler</h4><p>Güncel Liste</p><div class="venue-link"><a href="https://www.aeo.org.tr/NobetciEczaneler" target="_blank">🔍 GÖR</a></div></div>', unsafe_allow_html=True)
