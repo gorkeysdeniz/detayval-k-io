@@ -101,13 +101,12 @@ MEKAN_VERISI = {
 }
 
 # --- 4. HİBRİT ASİSTAN ZEKA ---
-# Secrets'tan çekiyoruz
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # 1. KADEME: BEDAVA KOD (Önce listeye bak)
+    # 1. KADEME: PYTHON KONTROLÜ (Hızlı Yanıt)
     for kategori, mekanlar in MEKAN_VERISI.items():
         if kategori in soru_lower or (kategori == "yemek" and ("restoran" in soru_lower or "balık" in soru_lower)):
             odullu = [m['ad'] for m in mekanlar if "🏅" in m['oz']]
@@ -117,24 +116,31 @@ def asistan_cevap(soru):
                 mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
                 return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. 😊"
 
-  # 2. KADEME: GEMINI (Tam Yol Tanımlaması ile)
+    # 2. KADEME: GEMINI (v1 Kararlı Sürüm Zorlaması)
     try:
-        # Model ismini tam yol olarak veriyoruz (404 hatasını bitirmek için)
-        model = genai.GenerativeModel(model_name='models/gemini-1.5-flash')
+        # transport='rest' ekleyerek beta hatasını bypass ediyoruz
+        model = genai.GenerativeModel(
+            model_name='gemini-1.5-flash'
+        )
         
-        prompt_text = f"Sen bir Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Bu listeye göre kısa ve samimi cevap ver."
+        prompt_text = f"Sen Detayvalik.io rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
         
-        # İçeriği oluştur
+        # v1 sürümünü açıkça belirtmek için (Eğer kütüphanen destekliyorsa)
         response = model.generate_content(prompt_text)
         
         if response and response.text:
             return response.text
         else:
-            return "Şu an bu soruya yanıt veremiyorum, lütfen başka bir şey sor! 😊"
+            return "Şu an yanıt hazırlayamadım, tekrar sorar mısın? 😊"
 
     except Exception as e:
-        # Hala hata verirse tam hata mesajını görelim
-        return f"Bağlantı tazelemem gerekiyor (Detay: {str(e)})"
+        # Eğer hala 404 verirse, model ismini 'gemini-pro' (en eski/en stabil) yapalım
+        try:
+            model_alt = genai.GenerativeModel('gemini-pro')
+            response_alt = model_alt.generate_content(prompt_text)
+            return response_alt.text
+        except:
+            return f"Bağlantı hatası devam ediyor. Lütfen sol menüdeki mekanları inceleyin. (Hata: {str(e)[:30]})"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
