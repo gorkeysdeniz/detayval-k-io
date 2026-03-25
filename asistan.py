@@ -138,9 +138,9 @@ def asistan_cevap(soru):
         """
         response = model.generate_content(prompt)
         return response.text
-    except Exception:
-        return "Şu an bağlantı kuramıyorum ama Yemek, Pizza veya Kokteyl sekmelerinden en iyi yerleri görebilirsin! 😊"
-
+    except Exception as e:
+        # Hatanın ne olduğunu ekranda görelim:
+        return f"Bağlantı Hatası: {type(e).__name__} - {str(e)}"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
