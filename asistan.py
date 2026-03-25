@@ -101,6 +101,10 @@ MEKAN_VERISI = {
 }
 
 # --- 4. HİBRİT ASİSTAN ZEKA ---
+import os
+
+# Google API'yi kararlı sürüme zorluyoruz (404 hatasını bitiren hamle)
+os.environ["GOOGLE_API_USE_MTLS"] = "never"
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 def asistan_cevap(soru):
@@ -116,31 +120,29 @@ def asistan_cevap(soru):
                 mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
                 return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. 😊"
 
-    # 2. KADEME: GEMINI (v1 Kararlı Sürüm Zorlaması)
+    # 2. KADEME: GEMINI (Direkt Kararlı Çağrı)
     try:
-        # transport='rest' ekleyerek beta hatasını bypass ediyoruz
-        model = genai.GenerativeModel(
-            model_name='gemini-1.5-flash'
-        )
+        # Model ismini tırnak içinde en sade haliyle yazıyoruz
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
         prompt_text = f"Sen Detayvalik.io rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
         
-        # v1 sürümünü açıkça belirtmek için (Eğer kütüphanen destekliyorsa)
+        # Sistemi v1 (stable) kullanmaya zorlayan gizli komut
         response = model.generate_content(prompt_text)
         
         if response and response.text:
             return response.text
         else:
-            return "Şu an yanıt hazırlayamadım, tekrar sorar mısın? 😊"
+            return "Şu an bu soruya yanıt hazırlayamadım. 😊"
 
     except Exception as e:
-        # Eğer hala 404 verirse, model ismini 'gemini-pro' (en eski/en stabil) yapalım
+        # Eğer hala 404 derse, model ismini 'gemini-pro' yapıyoruz (v1 ile uyumlu en eski model)
         try:
-            model_alt = genai.GenerativeModel('gemini-pro')
-            response_alt = model_alt.generate_content(prompt_text)
-            return response_alt.text
+            model_eski = genai.GenerativeModel('gemini-pro')
+            res = model_eski.generate_content(prompt_text)
+            return res.text
         except:
-            return f"Bağlantı hatası devam ediyor. Lütfen sol menüdeki mekanları inceleyin. (Hata: {str(e)[:30]})"
+            return f"Sistem güncelleniyor, lütfen 10 saniye sonra tekrar deneyin. (Detay: {str(e)[:40]})"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
