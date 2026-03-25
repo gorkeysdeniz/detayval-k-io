@@ -1,52 +1,54 @@
 import streamlit as st
 
-# --- 1. SAYFA AYARLARI ---
+# --- 1. AYARLAR ---
 st.set_page_config(page_title="Ayvalık Asistanı", layout="centered", page_icon="🏡")
 
 if "secili_sayfa" not in st.session_state:
     st.session_state.secili_sayfa = "asistan"
 
-# --- 2. ÖZEL CSS (YATAY KAYDIRILABİLİR MENÜ) ---
+# --- 2. CSS (MODERN MOBİL APP TASARIMI) ---
 st.markdown("""
     <style>
-    /* Mobilde kolonların alta binmesini engellemek için ana ayar */
-    [data-testid="stHorizontalBlock"] {
+    /* Sayfa boşluklarını sıfırla */
+    .block-container { padding: 1rem 0.5rem !important; max-width: 100% !important; }
+    
+    /* YATAY KAYAN MENÜ KONTEYNERI */
+    div[data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
         overflow-x: auto !important;
         white-space: nowrap !important;
-        padding-bottom: 10px !important;
+        gap: 10px !important;
+        padding: 5px 0 !important;
     }
-    
     /* Kaydırma çubuğunu gizle */
-    [data-testid="stHorizontalBlock"]::-webkit-scrollbar { display: none; }
+    div[data-testid="stHorizontalBlock"]::-webkit-scrollbar { display: none; }
 
-    /* Butonların kutu yapısı */
+    /* BUTONLARI ŞIK "TAB"LARA DÖNÜŞTÜR */
     div.stButton > button {
-        width: 85px !important;
-        height: 85px !important;
-        border-radius: 15px !important;
-        border: 1px solid #e2e8f0 !important;
         background-color: white !important;
         color: #1e293b !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        font-size: 11px !important;
-        font-weight: bold !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 20px !important; /* Yuvarlak modern görünüm */
+        padding: 8px 16px !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+        transition: all 0.2s;
+        display: inline-block !important;
+        width: auto !important;
     }
 
-    /* Seçili butonu vurgula */
+    /* Tıklanan butonu vurgula */
     div.stButton > button:focus {
-        border: 2px solid #2c5364 !important;
-        background-color: #f8fafc !important;
+        background-color: #2c5364 !important;
+        color: white !important;
+        border-color: #2c5364 !important;
     }
-    
+
     .main-header {
         background: linear-gradient(135deg, #0f2027 0%, #2c5364 100%);
-        color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px;
+        color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 10px;
     }
     .venue-card {
         background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px;
@@ -55,41 +57,58 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. BAŞLIK VE MENÜ ---
-st.markdown('<div class="main-header"><h1>🏡 Ayvalık Asistanı</h1></div>', unsafe_allow_html=True)
+# --- 3. ÜST BAŞLIK ---
+st.markdown('<div class="main-header"><h1>🏡 Ayvalık Misafir Asistanı</h1></div>', unsafe_allow_html=True)
 
-# Tek bir satırda (row) tüm butonları yan yana diziyoruz
-# Streamlit artık bunları alta atmayacak, sağa doğru kaydıracak
+# --- 4. YATAY KATEGORİ MENÜSÜ ---
+# Mobilde parmakla sağa kaydırılabilen 9 kategori
 menu_cols = st.columns(9)
 
-def create_tab(col, label, icon, target, key):
-    with col:
-        # Butonun üstünde emoji, altında yazı görünmesi için \n kullanıyoruz
-        if st.button(f"{icon}\n{label}", key=key):
+categories = [
+    ("🤖 Asistan", "asistan", "c1"),
+    ("🍽️ Yemek", "yemek", "c2"),
+    ("🍕 Pizza", "pizza", "c3"),
+    ("☕ Kahve", "kahve", "c4"),
+    ("🏖️ Beach", "beach", "c5"),
+    ("🍸 Kokteyl", "kokteyl", "c6"),
+    ("🎉 Eğlence", "eglence", "c7"),
+    ("🚕 Taksi", "taksi", "c8"),
+    ("💊 Eczane", "eczane", "c9")
+]
+
+for i, (label, target, key) in enumerate(categories):
+    with menu_cols[i]:
+        if st.button(label, key=key):
             st.session_state.secili_sayfa = target
             st.rerun()
 
-create_tab(menu_cols[0], "Asistan", "🤖", "asistan", "m1")
-create_tab(menu_cols[1], "Yemek", "🍽️", "yemek", "m2")
-create_tab(menu_cols[2], "Pizza", "🍕", "pizza", "m3")
-create_tab(menu_cols[3], "Kahve", "☕", "kahve", "m4")
-create_tab(menu_cols[4], "Beach", "🏖️", "beach", "m5")
-create_tab(menu_cols[5], "Kokteyl", "🍸", "kokteyl", "m6")
-create_tab(menu_cols[6], "Eğlence", "🎉", "eglence", "m7")
-create_tab(menu_cols[7], "Taksi", "🚕", "taksi", "m8")
-create_tab(menu_cols[8], "Eczane", "💊", "eczane", "m9")
-
 st.divider()
 
-# --- 4. MEKAN VERİSİ VE FONKSİYONLAR (DOKUNULMADI) ---
-# Mevcut MEKAN_VERISI ve kart_bas fonksiyonun buraya gelecek...
+# --- 5. MEKAN VERİSİ (DOKUNULMADI) ---
+MEKAN_VERISI = {
+    "kahve": [{"ad": "Pinos Cafe", "oz": "Butik Kahve", "ln": "http://google.com/1"}, {"ad": "Crow Coffe", "oz": "3. Nesil Kahve", "ln": "http://google.com/2"}, {"ad": "Ivy Ayvalık", "oz": "Huzurlu Bahçe", "ln": "http://google.com/3"}, {"ad": "Daisy Küçükköy", "oz": "Sanat & Kahve", "ln": "http://google.com/4"}, {"ad": "Nona Cunda", "oz": "Cunda Esintisi", "ln": "http://google.com/5"}, {"ad": "Cafe Melin", "oz": "Keyifli Durak", "ln": "http://google.com/6"}, {"ad": "Declan", "oz": "Modern Coffee", "ln": "http://google.com/7"}, {"ad": "AIMA", "oz": "Akademik Lezzet", "ln": "http://google.com/8"}],
+    "pizza": [{"ad": "Pizza Teo", "oz": "Odun Ateşi", "ln": "http://google.com/9"}, {"ad": "Uno Cunda", "oz": "İtalyan Klasiği", "ln": "http://google.com/10"}, {"ad": "Tino Ristorante", "oz": "Pizzeria", "ln": "http://google.com/11"}, {"ad": "Küçük İtalya", "oz": "Napoliten", "ln": "http://google.com/12"}, {"ad": "Cunda Luna", "oz": "Bahçe & Pizza", "ln": "http://google.com/13"}],
+    "yemek": [{"ad": "Ayna Cunda", "oz": "🏅 Michelin Rehberi", "ln": "http://google.com/14"}, {"ad": "L'arancia", "oz": "🏅 Michelin Rehberi", "ln": "http://google.com/15"}, {"ad": "By Nihat", "oz": "🏅 Efsanevi Balıkçı", "ln": "http://google.com/16"}, {"ad": "Ritüel 1873", "oz": "Modern Ege Mutfağı", "ln": "http://google.com/17"}, {"ad": "Köşebaşı", "oz": "Kebap & Ocakbaşı", "ln": "http://google.com/18"}, {"ad": "Papaz'ın Evi", "oz": "Tarihi Doku", "ln": "http://google.com/19"}, {"ad": "Ayvalık Balıkçısı", "oz": "Taze Lezzetler", "ln": "http://google.com/20"}, {"ad": "Karina Ayvalık", "oz": "Deniz Kenarı", "ln": "http://google.com/21"}],
+    "kokteyl": [{"ad": "Ritüel 1873 Cunda", "oz": "İmza Kokteyller", "ln": "http://google.com/17"}, {"ad": "Cunda Luna", "oz": "Alkol & Müzik", "ln": "http://google.com/13"}, {"ad": "Ciello Cunda", "oz": "Roof Bar", "ln": "http://google.com/22"}, {"ad": "Vino Şarap Evi", "oz": "Şarap & Meze", "ln": "http://google.com/23"}, {"ad": "De Jong Cocktails", "oz": "Craft Cocktails", "ln": "http://google.com/24"}, {"ad": "Cunda Frenk", "oz": "Trend Mekan", "ln": "http://google.com/25"}, {"ad": "Felicita Küçükköy", "oz": "Bohem Atmosfer", "ln": "http://google.com/26"}, {"ad": "Cunda Kaktüs", "oz": "Gece Eğlencesi", "ln": "http://google.com/27"}],
+    "beach": [{"ad": "Ajlan Eos Beach", "oz": "💎 Ücretli Beach", "ln": "http://google.com/28"}, {"ad": "Kesebir Cunda", "oz": "💎 Ücretli Beach", "ln": "http://google.com/29"}, {"ad": "Sea Resort / Long", "oz": "💎 Ücretli Beach", "ln": "http://google.com/30"}, {"ad": "Surya Beach", "oz": "💎 Ücretli Beach", "ln": "http://google.com/31"}, {"ad": "Sarımsaklı Plajları", "oz": "🆓 Ücretsiz Plaj", "ln": "http://google.com/32"}, {"ad": "Badavut Plajı", "oz": "🆓 Ücretsiz Plaj", "ln": "http://google.com/33"}],
+    "eglence": [{"ad": "La Fuga", "oz": "Müzik & Dans", "ln": "http://google.com/34"}, {"ad": "Kraft", "oz": "Craft Beer", "ln": "http://google.com/35"}, {"ad": "Afişe Sahne", "oz": "Canlı Performans", "ln": "http://google.com/36"}, {"ad": "Aksi Pub", "oz": "Pub Kültürü", "ln": "http://google.com/37"}]
+}
 
+# --- 6. FONKSİYONLAR (DOKUNULMADI) ---
+def kart_bas(key):
+    if key in MEKAN_VERISI:
+        for m in MEKAN_VERISI[key]:
+            st.markdown(f'<div class="venue-card"><div><h4 style="margin:0; font-size:14px;">{m["ad"]}</h4><p style="margin:0; font-size:11px; color:#666;">{m["oz"]}</p></div><div class="venue-link"><a href="{m["ln"]}" target="_blank" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:10px; font-weight:bold;">📍 KONUM</a></div></div>', unsafe_allow_html=True)
+
+# --- 7. SAYFA MANTIĞI ---
 s = st.session_state.secili_sayfa
+st.subheader(f"✨ {s.capitalize()}")
 
 if s == "asistan":
-    st.info("🤖 Size nasıl yardımcı olabilirim?")
-    st.chat_input("Pizza, Taksi, Kahve...")
+    st.chat_input("Nereye gitmek istersiniz?")
+elif s == "taksi":
+    st.markdown('<div class="venue-card"><h4>🚕 Sarımsaklı Taksi</h4><div class="venue-link"><a href="tel:02663961010" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:bold;">📞 ARA</a></div></div>', unsafe_allow_html=True)
+elif s == "eczane":
+    st.markdown('<div class="venue-card"><h4>💊 Nöbetçi Eczaneler</h4><div class="venue-link"><a href="https://www.aeo.org.tr/NobetciEczaneler" target="_blank" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:bold;">🔍 GÖR</a></div></div>', unsafe_allow_html=True)
 else:
-    # kart_bas(s) fonksiyonunu burada çağırabilirsin
-    st.write(f"### {s.capitalize()} Önerileri")
-    # Örnek: kart_bas(s) 
+    kart_bas(s)
