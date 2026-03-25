@@ -1,4 +1,6 @@
+import google.generativeai as genai
 import streamlit as st
+
 
 # --- 1. AYARLAR ---
 st.set_page_config(page_title="Detayvalik.io Asistan", layout="centered", page_icon="🏡")
@@ -98,19 +100,46 @@ MEKAN_VERISI = {
     ]
 }
 
-# --- 4. ASİSTAN ZEKA ---
+# --- 4. HİBRİT ASİSTAN ZEKA ---
+genai.configure(api_key="AIzaSyDrciQd7GTADbez-7av0M6KyuSQYmHUd0g")
+model = genai.GenerativeModel('gemini-1.5-flash')
+
 def asistan_cevap(soru):
-    soru = soru.lower()
+    soru_lower = soru.lower()
+    
+    # --- 1. KADEME: BEDAVA KONTROL (Python Çalışır - 0 Token) ---
     for kategori, mekanlar in MEKAN_VERISI.items():
-        if kategori in soru or (kategori == "yemek" and ("restoran" in soru or "balık" in soru)):
+        if kategori in soru_lower or (kategori == "yemek" and ("restoran" in soru_lower or "balık" in soru_lower)):
             odullu = [m['ad'] for m in mekanlar if "🏅" in m['oz']]
             if odullu:
-                return f"Detayvalik.io öneriyor: Özellikle **Gault Millau** ödüllü olan **{', '.join(odullu)}** restoranlarını mutlaka denemelisiniz. Navigasyon için sekmelere bakabilirsiniz! ✨"
+                return f"Detayvalik.io öneriyor: Özellikle **Gault Millau** ödüllü olan **{', '.join(odullu)}** mekanlarını mutlaka denemelisiniz. Navigasyon için sekmelere bakabilirsiniz! ✨"
             else:
                 mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
-                return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. Detaylar ilgili sekmede! 😊"
-    if "taksi" in soru: return "Sarımsaklı Taksi bir tık uzağınızda! '🚕 Taksi' sekmesine geçip butona basmanız yeterli. 🚕"
-    return "Merhaba! Ben Detayvalik.io asistanıyım. Yemek, Pizza, Kokteyl, Eğlence veya Beach önerileri sunabilirim. Ne sormak istersiniz?"
+                return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. Detaylar ilgili sekmelerde! 😊"
+
+    if "taksi" in soru_lower:
+        return "Sarımsaklı Taksi bir tık uzağınızda! '🚕 Taksi' sekmesine geçip butona basmanız yeterli. 🚕"
+
+    # --- 4. KADEME: YAPAY ZEKA (Sadece Karmaşık Sorularda - Token Harcar) ---
+    try:
+        # Prompt'u senin mekan verilerinle besliyoruz ki dışarı taşmasın
+        prompt = f"""
+        Sen Detayvalik.io'nun gurme ve uzman Ayvalık asistanısın. 
+        Sana verilen mekan listesini kullanarak kullanıcıya samimi, kısa ve profesyonel tavsiyeler ver.
+        
+        KURALLAR:
+        1. Sadece sana verilen listedeki mekanları öner.
+        2. Gault Millau ödüllü mekanları (Ayna, By Nihat, Ayvalık Balıkçısı) her zaman en üste koy ve öv.
+        3. Eğer soru mekanlarla ilgili değilse nazikçe reddet.
+        
+        MEKAN LİSTESİ: {MEKAN_VERISI}
+        
+        KULLANICI SORUSU: {soru}
+        """
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception:
+        return "Şu an bağlantı kuramıyorum ama Yemek, Pizza veya Kokteyl sekmelerinden en iyi yerleri görebilirsin! 😊"
 
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
