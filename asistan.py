@@ -101,10 +101,6 @@ MEKAN_VERISI = {
 }
 
 # --- 4. HİBRİT ASİSTAN ZEKA ---
-import os
-
-# Google API'yi kararlı sürüme zorluyoruz (404 hatasını bitiren hamle)
-os.environ["GOOGLE_API_USE_MTLS"] = "never"
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 def asistan_cevap(soru):
@@ -120,29 +116,23 @@ def asistan_cevap(soru):
                 mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
                 return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. 😊"
 
-    # 2. KADEME: GEMINI (Direkt Kararlı Çağrı)
+    # 2. KADEME: GEMINI (En Garanti Model: gemini-pro)
     try:
-        # Model ismini tırnak içinde en sade haliyle yazıyoruz
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # 1.5 Flash hata veriyorsa, en stabil olan 'gemini-pro'ya sığınıyoruz
+        model = genai.GenerativeModel('gemini-pro')
         
-        prompt_text = f"Sen Detayvalik.io rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
+        prompt_text = f"Sen bir Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Bu listeye göre kısa cevap ver."
         
-        # Sistemi v1 (stable) kullanmaya zorlayan gizli komut
         response = model.generate_content(prompt_text)
         
         if response and response.text:
             return response.text
         else:
-            return "Şu an bu soruya yanıt hazırlayamadım. 😊"
+            return "Şu an bu soruya yanıt veremiyorum, lütfen başka bir şey sor! 😊"
 
     except Exception as e:
-        # Eğer hala 404 derse, model ismini 'gemini-pro' yapıyoruz (v1 ile uyumlu en eski model)
-        try:
-            model_eski = genai.GenerativeModel('gemini-pro')
-            res = model_eski.generate_content(prompt_text)
-            return res.text
-        except:
-            return f"Sistem güncelleniyor, lütfen 10 saniye sonra tekrar deneyin. (Detay: {str(e)[:40]})"
+        # Hata mesajını iyice sadeleştirelim, kullanıcı korkmasın
+        return "Küçük bir bağlantı tazelemesi yapıyorum, 5 saniye sonra tekrar sorar mısın? ✨"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
