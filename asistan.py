@@ -101,33 +101,20 @@ MEKAN_VERISI = {
     ]
 }
 
-# --- 4. HİBRİT ASİSTAN ZEKA (YENİLENMİŞ - KESİN ÇÖZÜM) ---
+# --- 4. HİBRİT ASİSTAN ZEKA (MANTIK HATASI DÜZELTİLDİ) ---
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # KADEME 1: LOKAL VERİ KONTROLÜ (Senin listendekiler)
+    # 1. KADEME: LOKAL LİSTE KONTROLÜ
     for kategori, mekanlar in MEKAN_VERISI.items():
         if kategori in soru_lower:
             isimler = [m['ad'] for m in mekanlar[:3]]
             return f"Detayvalik.io rehberinden seçtiklerim: **{', '.join(isimler)}** 😊"
 
-    # --- EĞER LİSTEDE YOKSA BURADAN AŞAĞIYA AKAR (AI DEVREYE GİRER) ---
+    # --- KRİTİK NOKTA: EĞER BURAYA GELİRSE LİSTEDE YOKTUR ---
+    # Kodun burada durup "yok" demesine izin vermiyoruz. Direkt AI'ya paslıyoruz.
 
-    # KADEME 2: GEMINI 2.5 FLASH DENEMESİ
-    try:
-        gemini_key = st.secrets["GEMINI_API_KEY"]
-        gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
-        g_payload = {"contents": [{"parts": [{"text": f"Sen Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Çok kısa cevap ver."}]}]}
-        
-        g_res = requests.post(gemini_url, json=g_payload, timeout=5)
-        g_data = g_res.json()
-        
-        if "candidates" in g_data:
-            return g_data["candidates"][0]["content"]["parts"][0]["text"]
-    except:
-        pass # Gemini meşgulse (High Demand vb.) sessizce Groq'a geç
-
-    # KADEME 3: GROQ (LLAMA 3.3) - KESİN ÇÖZÜM (GEMINI MEŞGULSE ÇALIŞIR)
+    # 2. KADEME: GROQ (LLAMA 3.3) - EN HIZLI VE EN GARANTİ ÇÖZÜM
     try:
         groq_key = st.secrets["GROQ_API_KEY"]
         groq_url = "https://api.groq.com/openai/v1/chat/completions"
@@ -136,17 +123,31 @@ def asistan_cevap(soru):
         l_payload = {
             "model": "llama-3.3-70b-versatile",
             "messages": [
-                {"role": "system", "content": f"Sen bir Ayvalık rehberisin. Elindeki veriler: {MEKAN_VERISI}. Listede olmayanları genel bilginle yanıtla."},
+                {"role": "system", "content": f"Sen Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Listede olmayanları (kahvaltı gibi) genel bilginle yanıtla."},
                 {"role": "user", "content": f"{soru}. Çok kısa ve samimi bir cevap ver."}
             ]
         }
         
         l_res = requests.post(groq_url, headers=headers, json=l_payload, timeout=8)
         l_data = l_res.json()
-        return l_data['choices'][0]['message']['content']
         
+        if "choices" in l_data:
+            return l_data['choices'][0]['message']['content']
+            
     except Exception:
-        return "Ayvalık sokaklarında ufak bir kesinti... Hemen tekrar dener misin? 🌊"
+        pass # Groq'da sorun olursa Gemini'ye (C Planı) geçer
+
+    # 3. KADEME: GEMINI (YEDEK)
+    try:
+        gemini_key = st.secrets["GEMINI_API_KEY"]
+        gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+        g_payload = {"contents": [{"parts": [{"text": f"Ayvalık rehberi olarak cevapla: {soru}"}]}]}
+        g_res = requests.post(gemini_url, json=g_payload, timeout=5)
+        g_data = g_res.json()
+        if "candidates" in g_data:
+            return g_data["candidates"][0]["content"]["parts"][0]["text"]
+    except:
+        return "Ayvalık'ta şu an hafif bir lodos var, bağlantı zayıf. Tekrar sorar mısın? 🌊"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
