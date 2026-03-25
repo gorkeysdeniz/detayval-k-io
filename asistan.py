@@ -123,7 +123,7 @@ def asistan_cevap(soru):
         l_payload = {
             "model": "llama-3.3-70b-versatile",
             "messages": [
-                {"role": "system", "content": f"Sen Ayvalık rehberisin. Bir ayvalıklı gibi samimi cevap ver ve sorulara göre gerçek ve popüler cevaplar ver. Elindeki liste: {MEKAN_VERISI}. Listede olmayanları (kahvaltı gibi) genel bilginle yanıtla."},
+                {"role": "system", "content": f"Sen Ayvalık rehberisin. Bir ayvalıklı gibi samimi cevap ver ve sorulara internette tarayıp sonuçlara göre gerçek ve popüler cevaplar ver. Elindeki liste: {MEKAN_VERISI}. Listede olmayanları (kahvaltı gibi) genel bilginle yanıtla."},
                 {"role": "user", "content": f"{soru}. Çok kısa ve samimi bir cevap ver."}
             ]
         }
