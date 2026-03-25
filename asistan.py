@@ -1,6 +1,6 @@
 import streamlit as st
-import google.generativeai as genai
-
+import requests  # Bu kütüphane Streamlit'te hazır gelir, ekleme yapmana gerek yok.
+import json
 
 
 # --- 1. AYARLAR ---
@@ -103,40 +103,41 @@ MEKAN_VERISI = {
 
 # ... (Diğer kısımlar aynı kalsın, 4. Bölümü şununla değiştir) ...
 
-# --- 4. HİBRİT ASİSTAN ZEKA (TEŞHİS VE HATA YAKALAMA MODU) ---
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-
+# --- 4. HİBRİT ASİSTAN ZEKA (KÜTÜPHANESİZ - GARANTİ VERSİYON) ---
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # 1. KADEME: PYTHON KONTROLÜ (Kendi Listemiz)
-    # Eğer soru senin listende (pizza, kahve, yemek vb.) varsa Gemini'ye gitmez.
+    # 1. KADEME: KOD İÇİNDEKİ VERİ (Hızlı Yanıt)
     for kategori, mekanlar in MEKAN_VERISI.items():
-        if kategori in soru_lower or (kategori == "yemek" and ("restoran" in soru_lower or "balık" in soru_lower)):
-            odullu = [m['ad'] for m in mekanlar if "🏅" in m['oz']]
-            if odullu:
-                return f"Detayvalik.io öneriyor: Özellikle **Gault Millau** ödüllü olan **{', '.join(odullu)}** mekanlarını mutlaka denemelisiniz. ✨"
-            else:
-                mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
-                return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. 😊"
+        if kategori in soru_lower:
+            isimler = [m['ad'] for m in mekanlar[:3]]
+            return f"Detayvalik.io öneriyor: **{', '.join(isimler)}** 😊"
 
-    # 2. KADEME: GEMINI (Hata Detayını Gösteren Mod)
+    # 2. KADEME: GOOGLE API (Doğrudan Bağlantı - v1 Zorlaması)
+    api_key = st.secrets["GEMINI_API_KEY"]
+    # Adresin içinde 'v1' yazdığımız için 404 hatası alamazsın:
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+    
+    headers = {'Content-Type': 'application/json'}
+    payload = {
+        "contents": [{
+            "parts": [{"text": f"Sen Detayvalik.io asistanısın. Ayvalık rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."}]
+        }]
+    }
+
     try:
-        # En stabil model ismiyle deniyoruz
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        result = response.json()
         
-        prompt_text = f"Sen Detayvalik.io asistanısın. Ayvalık rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
-        response = model.generate_content(prompt_text)
-        
-        if response and response.text:
-            return response.text
+        # Yanıtı içinden çekip alıyoruz
+        if "candidates" in result:
+            return result["candidates"][0]["content"]["parts"][0]["text"]
         else:
-            return "Cevap boş döndü, lütfen soruyu tekrar iletir misin? 😊"
-
+            # Hata varsa detayını gösterelim
+            return f"🚨 API Yanıt Vermedi: {result.get('error', {}).get('message', 'Bilinmeyen Hata')}"
+            
     except Exception as e:
-        # HATA NEDİR? (Ekranda kırmızı alarm yerine bu yazıyı göreceğiz)
-        # Bu mesajı gördüğünde bana buradaki hatayı yaz kanka.
-        return f"🚨 API Hatası Oluştu: {str(e)}"
+        return f"🚨 Bağlantı Hatası: {str(e)}"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
