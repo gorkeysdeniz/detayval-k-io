@@ -101,27 +101,35 @@ MEKAN_VERISI = {
     ]
 }
 
-# --- 4. HİBRİT ASİSTAN ZEKA (GÜNCEL) ---
+# ... (Diğer kısımlar aynı kalsın, 4. Bölümü şununla değiştir) ...
+
+# --- 4. HİBRİT ASİSTAN ZEKA (SIRALI DENEME SİSTEMİ) ---
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # KADEME 1: Kendi verilerinden kontrol et (Burada hata çıkmaz)
+    # 1. KADEME: KOD İÇİNDEKİ VERİ (Ayvalık Rehberi)
     for kategori, mekanlar in MEKAN_VERISI.items():
         if kategori in soru_lower:
             isimler = [m['ad'] for m in mekanlar[:3]]
-            return f"Ayvalık rehberinden öneriler: **{', '.join(isimler)}**"
+            return f"Detayvalik.io rehberinden öneriler: **{', '.join(isimler)}**. İyi eğlenceler! 😊"
 
-    # KADEME 2: Gemini'ye sor (404 riskli bölge)
-    # Sırasıyla dene: Biri mutlaka çalışacaktır!
-    for model_adi in ['gemini-1.5-flash', 'gemini-pro', 'models/gemini-pro']:
+    # 2. KADEME: GEMINI (SIRALI FALLBACK SİSTEMİ)
+    # 404 hatasını bitiren 'latest' ve 'flash' ikilisi
+    modeller = ['gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-pro']
+    prompt = f"Sen Detayvalik.io asistanısın. Ayvalık rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
+    
+    for m_adi in modeller:
         try:
-            model = genai.GenerativeModel(model_adi)
-            response = model.generate_content(f"Soru: {soru}")
-            return response.text
-        except Exception:
-            continue # 404 alırsan bir sonraki modeli dene
+            model = genai.GenerativeModel(m_adi)
+            response = model.generate_content(prompt)
+            if response and response.text:
+                return response.text
+        except:
+            continue # Hata verirse (404 vb.) bir sonrakine geç
             
-    return "Şu an bağlantı kurulamadı, lütfen az sonra tekrar dene."
+    return "Şu an bağlantı kurulamadı, lütfen 10 saniye sonra tekrar dene! ✨"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
