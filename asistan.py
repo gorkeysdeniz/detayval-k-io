@@ -6,103 +6,102 @@ st.set_page_config(page_title="Ayvalık Asistanı", layout="centered", page_icon
 if "secili_sayfa" not in st.session_state:
     st.session_state.secili_sayfa = "asistan"
 
-# --- 2. CSS (3'LÜ DEV BUTONLAR & SIFIR BOŞLUK) ---
+# --- 2. CSS (KAYDIRMAYI ÖLDÜREN VE SIĞDIRAN YAPI) ---
 st.markdown("""
     <style>
-    /* Sayfa kenar boşluklarını daralt */
+    /* 1. Yatay kaydırmayı kökten engelle */
+    html, body, [data-testid="stAppViewContainer"] {
+        overflow-x: hidden !important;
+    }
+    
     .block-container {
-        padding-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
+        padding-left: 0.4rem !important;
+        padding-right: 0.4rem !important;
         padding-top: 1rem !important;
+        max-width: 100% !important;
     }
 
-    /* 3'lü yan yana dizilimi mobilde koru */
+    /* 2. Kolonları yan yana zorla ve taşmayı engelle */
     [data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important;
-        gap: 8px !important;
-        margin-bottom: 8px !important;
+        gap: 5px !important; /* Boşluğu minimuma indirdik */
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
 
-    /* Kolon genişliğini %33'e sabitle */
+    /* 3. Tam matematiksel sığdırma: (100% / 3) - boşluk payı */
     [data-testid="column"] {
-        flex: 1 1 calc(33.3% - 8px) !important;
-        min-width: calc(33.3% - 8px) !important;
+        flex: 1 1 32% !important; 
+        min-width: 32% !important;
+        max-width: 32% !important;
     }
 
-    /* DEV BUTON TASARIMI */
+    /* 4. BUTON BOYUTLARI */
     div.stButton > button {
         width: 100% !important;
-        height: 110px !important; /* Daha yüksek ve dolgun */
+        height: 100px !important; 
+        padding: 2px !important;
+        border-radius: 12px !important;
         background-color: white !important;
         border: 1px solid #e2e8f0 !important;
-        border-radius: 18px !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
-        
-        /* Font ve Hizalama */
-        font-size: 15px !important; /* Yazılar daha büyük */
-        font-weight: 800 !important;
-        color: #1e293b !important;
+        font-size: 13px !important; /* Fontu bir tık küçülttük ki sığsın */
+        font-weight: 700 !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: center !important;
         align-items: center !important;
-        line-height: 1.3 !important;
-    }
-
-    /* Aktif butona hafif renk ver */
-    div.stButton > button:active, div.stButton > button:focus {
-        border-color: #2c5364 !important;
-        background-color: #f8fafc !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     }
 
     .main-header {
         background: linear-gradient(135deg, #0f2027 0%, #2c5364 100%);
-        color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px;
+        color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px;
     }
     
     .venue-card {
-        background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px;
+        background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px;
         border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;
     }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 3. PANEL ---
-st.markdown('<div class="main-header"><h1>🏡 Ayvalık Asistanı</h1><p>Hızlı ve Büyük Menü</p></div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header"><h1>🏡 Ayvalık Asistanı</h1></div>', unsafe_allow_html=True)
 
-# --- 4. 3x3 / 3x4 GRID (HIZLI BUTONLAR) ---
+# --- 4. 3x3 DÜZEN (KESİN SIĞAN YAPI) ---
 # Satır 1
-c1, c2, c3 = st.columns(3)
-with c1: 
+r1 = st.columns(3)
+with r1[0]: 
     if st.button("🤖\nAsistan", key="m1"): st.session_state.secili_sayfa = "asistan"
-with c2: 
+with r1[1]: 
     if st.button("🍽️\nYemek", key="m2"): st.session_state.secili_sayfa = "yemek"
-with c3: 
+with r1[2]: 
     if st.button("🍕\nPizza", key="m3"): st.session_state.secili_sayfa = "pizza"
 
 # Satır 2
-c4, c5, c6 = st.columns(3)
-with c4: 
+r2 = st.columns(3)
+with r2[0]: 
     if st.button("☕\nKahve", key="m4"): st.session_state.secili_sayfa = "kahve"
-with c5: 
+with r2[1]: 
     if st.button("🏖️\nBeach", key="m5"): st.session_state.secili_sayfa = "beach"
-with c6: 
+with r2[2]: 
     if st.button("🍸\nKokteyl", key="m6"): st.session_state.secili_sayfa = "kokteyl"
 
 # Satır 3
-c7, c8, c9 = st.columns(3)
-with c7: 
+r3 = st.columns(3)
+with r3[0]: 
     if st.button("🎉\nEğlence", key="m7"): st.session_state.secili_sayfa = "eglence"
-with c8: 
+with r3[1]: 
     if st.button("🚕\nTaksi", key="m8"): st.session_state.secili_sayfa = "taksi"
-with c9: 
+with r3[2]: 
     if st.button("💊\nEczane", key="m9"): st.session_state.secili_sayfa = "eczane"
 
 st.divider()
 
-# --- 5. MEKAN VERİSİ (DOKUNULMADI) ---
+# --- 5. MEKAN VERİSİ (AYNI) ---
 MEKAN_VERISI = {
     "kahve": [{"ad": "Pinos Cafe", "oz": "Butik Kahve", "ln": "http://google.com/1"}, {"ad": "Crow Coffe", "oz": "3. Nesil Kahve", "ln": "http://google.com/2"}, {"ad": "Ivy Ayvalık", "oz": "Huzurlu Bahçe", "ln": "http://google.com/3"}, {"ad": "Daisy Küçükköy", "oz": "Sanat & Kahve", "ln": "http://google.com/4"}, {"ad": "Nona Cunda", "oz": "Cunda Esintisi", "ln": "http://google.com/5"}, {"ad": "Cafe Melin", "oz": "Keyifli Durak", "ln": "http://google.com/6"}, {"ad": "Declan", "oz": "Modern Coffee", "ln": "http://google.com/7"}, {"ad": "AIMA", "oz": "Akademik Lezzet", "ln": "http://google.com/8"}],
     "pizza": [{"ad": "Pizza Teo", "oz": "Odun Ateşi", "ln": "http://google.com/9"}, {"ad": "Uno Cunda", "oz": "İtalyan Klasiği", "ln": "http://google.com/10"}, {"ad": "Tino Ristorante", "oz": "Pizzeria", "ln": "http://google.com/11"}, {"ad": "Küçük İtalya", "oz": "Napoliten", "ln": "http://google.com/12"}, {"ad": "Cunda Luna", "oz": "Bahçe & Pizza", "ln": "http://google.com/13"}],
@@ -115,9 +114,9 @@ MEKAN_VERISI = {
 def kart_bas(key):
     if key in MEKAN_VERISI:
         for m in MEKAN_VERISI[key]:
-            st.markdown(f'<div class="venue-card"><div><h4 style="margin:0; font-size:14px;">{m["ad"]}</h4><p style="margin:0; font-size:11px; color:#666;">{m["oz"]}</p></div><div class="venue-link"><a href="{m["ln"]}" target="_blank" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:10px; font-weight:bold;">📍 KONUM</a></div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="venue-card"><div><h4 style="margin:0; font-size:14px;">{m["ad"]}</h4><p style="margin:0; font-size:11px; color:#666;">{m["oz"]}</p></div><div class="venue-link"><a href="{m["ln"]}" target="_blank" style="background:#2c5364; color:white; padding:6px 10px; border-radius:6px; text-decoration:none; font-size:10px; font-weight:bold;">📍 KONUM</a></div></div>', unsafe_allow_html=True)
 
-# --- 6. SAYFA MANTIĞI (ANLIK GEÇİŞ) ---
+# --- 6. İÇERİK ---
 s = st.session_state.secili_sayfa
 
 if s == "asistan":
@@ -138,26 +137,8 @@ if s == "asistan":
             with st.chat_message("assistant"): st.write("Lütfen yukarıdaki menüleri kullanın.")
 
 elif s == "yemek":
-    st.markdown("##### 🍽️ Yemek Önerileri")
+    st.markdown("##### 🍽️ Yemek & Pizza")
     kart_bas("yemek")
-elif s == "pizza":
-    st.markdown("##### 🍕 Pizza Önerileri")
     kart_bas("pizza")
-elif s == "kahve":
-    st.markdown("##### ☕ Kahve & Tatlı")
-    kart_bas("kahve")
-elif s == "beach":
-    st.markdown("##### 🏖️ Beach & Plaj")
-    kart_bas("beach")
-elif s == "kokteyl":
-    st.markdown("##### 🍸 Kokteyl & Bar")
-    kart_bas("kokteyl")
-elif s == "eglence":
-    st.markdown("##### 🎉 Eğlence")
-    kart_bas("eglence")
-elif s == "taksi":
-    st.markdown("##### 🚕 Taksi")
-    st.markdown('<div class="venue-card"><h4>Sarımsaklı Taksi</h4><div class="venue-link"><a href="tel:02663961010" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:bold;">📞 ARA</a></div></div>', unsafe_allow_html=True)
-elif s == "eczane":
-    st.markdown("##### 💊 Eczane")
-    st.markdown('<div class="venue-card"><h4>Nöbetçi Eczaneler</h4><div class="venue-link"><a href="https://www.aeo.org.tr/NobetciEczaneler" target="_blank" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:bold;">🔍 GÖR</a></div></div>', unsafe_allow_html=True)
+else:
+    kart_bas(s)
