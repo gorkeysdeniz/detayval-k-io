@@ -101,40 +101,27 @@ MEKAN_VERISI = {
     ]
 }
 
-
-    # --- 4. HİBRİT ASİSTAN ZEKA ---
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-
+# --- 4. HİBRİT ASİSTAN ZEKA (GÜNCEL) ---
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # 1. KADEME: PYTHON KONTROLÜ (Hızlı Yanıt)
+    # KADEME 1: Kendi verilerinden kontrol et (Burada hata çıkmaz)
     for kategori, mekanlar in MEKAN_VERISI.items():
-        if kategori in soru_lower or (kategori == "yemek" and ("restoran" in soru_lower or "balık" in soru_lower)):
-            odullu = [m['ad'] for m in mekanlar if "🏅" in m['oz']]
-            if odullu:
-                return f"Detayvalik.io öneriyor: Özellikle **Gault Millau** ödüllü olan **{', '.join(odullu)}** mekanlarını mutlaka denemelisiniz. ✨"
-            else:
-                mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
-                return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. 😊"
+        if kategori in soru_lower:
+            isimler = [m['ad'] for m in mekanlar[:3]]
+            return f"Ayvalık rehberinden öneriler: **{', '.join(isimler)}**"
 
-    # 2. KADEME: GEMINI (Sıralı Deneme - 404 Savar)
-    # Denenecek model isimleri (Sırasıyla)
-    model_listesi = ['gemini-1.5-flash', 'gemini-pro', 'models/gemini-pro']
-    prompt_text = f"Sen bir Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
-
-    for model_ismi in model_listesi:
+    # KADEME 2: Gemini'ye sor (404 riskli bölge)
+    # Sırasıyla dene: Biri mutlaka çalışacaktır!
+    for model_adi in ['gemini-1.5-flash', 'gemini-pro', 'models/gemini-pro']:
         try:
-            model = genai.GenerativeModel(model_ismi)
-            response = model.generate_content(prompt_text)
-            if response and response.text:
-                return response.text
+            model = genai.GenerativeModel(model_adi)
+            response = model.generate_content(f"Soru: {soru}")
+            return response.text
         except Exception:
-            # Bu model hata verirse (404 vb.), döngü bir sonrakine geçer
-            continue
-
-    # Eğer hiçbir model çalışmazsa son çare:
-    return "Bağlantı tazelemem gerekiyor, lütfen 10 saniye sonra tekrar sorar mısın? ✨"
+            continue # 404 alırsan bir sonraki modeli dene
+            
+    return "Şu an bağlantı kurulamadı, lütfen az sonra tekrar dene."
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
