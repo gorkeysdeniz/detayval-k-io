@@ -100,13 +100,14 @@ MEKAN_VERISI = {
     ]
 }
 
-# Artık anahtarı buraya yazmıyoruz, Streamlit'in gizli ayarlarından çekiyoruz
+# --- 4. HİBRİT ASİSTAN ZEKA ---
+# Secrets'tan çekiyoruz
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # 1. KADEME: BEDAVA KONTROL (0 Token)
+    # 1. KADEME: BEDAVA KOD (Önce listeye bak)
     for kategori, mekanlar in MEKAN_VERISI.items():
         if kategori in soru_lower or (kategori == "yemek" and ("restoran" in soru_lower or "balık" in soru_lower)):
             odullu = [m['ad'] for m in mekanlar if "🏅" in m['oz']]
@@ -116,32 +117,24 @@ def asistan_cevap(soru):
                 mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
                 return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. 😊"
 
-    if "taksi" in soru_lower:
-        return "Sarımsaklı Taksi bir tık uzağınızda! 🚕"
-
-    # 2. KADEME: OTOMATİK MODEL TARAYICI (Hibrit Zeka)
-    # Hangi model çalışıyorsa onu bulana kadar dener
-    denenecek_modeller = [
-        'gemini-1.5-flash', 
-        'gemini-1.5-flash-latest', 
-        'gemini-1.5-pro', 
-        'gemini-pro'
-    ]
-    
-    prompt = f"Sen Detayvalik.io asistanısın. Şu listeye göre samimi cevap ver: {MEKAN_VERISI}. Soru: {soru}"
-
-    for model_adi in denenecek_modeller:
-        try:
-            model = genai.GenerativeModel(model_adi)
-            response = model.generate_content(prompt)
-            if response and response.text:
-                return response.text
-        except Exception:
-            # Bu model çalışmadı (404 veya başka hata), bir sonrakine geç
-            continue
-            
-    # Eğer hiçbir model çalışmazsa son çare mesajı
-    return "Şu an tüm zeka modellerim meşgul, ama sol taraftaki menüden tüm mekanları görebilirsin! 😊"
+    # 2. KADEME: GEMINI (Eğer listede yoksa zekayı kullan)
+    try:
+        # En kararlı model ismi: gemini-1.5-flash
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        prompt = f"""
+        Sen Detayvalik.io asistanısın. Samimi bir dille cevap ver. 
+        Kullanıcıya şu listedeki yerleri öner: {MEKAN_VERISI}
+        Eğer sorusu kahvaltı gibi listede olmayan bir şeyse, listedeki yemek kategorisindeki 
+        yerlerin kahvaltı/brunch için de uygun olabileceğini belirterek (Ayna Cunda gibi) cevap ver.
+        Soru: {soru}
+        """
+        
+        response = model.generate_content(prompt)
+        return response.text
+        
+    except Exception:
+        return "Şu an gurme zekamda bir yoğunluk var, ama sol menüden tüm mekanlarımıza ulaşabilirsin! 🍽️"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
