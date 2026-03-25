@@ -6,18 +6,17 @@ st.set_page_config(page_title="Ayvalık Asistanı", layout="centered", page_icon
 if "secili_sayfa" not in st.session_state:
     st.session_state.secili_sayfa = "asistan"
 
-# --- 2. CSS (KESİN ÇÖZÜM: TRANSPARENT OVERLAY & GRID) ---
+# --- 2. CSS (MOBİLDE 3'LÜ DİZİLİMİ ZORLAYAN KOD) ---
 st.markdown("""
     <style>
-    /* Sayfa genel ayarları */
+    /* Ana konteyner ayarları */
     .block-container { padding: 1rem 0.5rem !important; max-width: 100% !important; }
-    html, body, [data-testid="stAppViewContainer"] { overflow-x: hidden !important; }
-
-    /* Pinterest Grid Yapısı */
+    
+    /* PINTEREST GRID: Mobilde de 3 sütunu korur */
     .p-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
         width: 100%;
         margin-bottom: 20px;
     }
@@ -26,20 +25,19 @@ st.markdown("""
     .p-box {
         background: white;
         border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        height: 100px;
+        border-radius: 12px;
+        height: 90px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         position: relative;
     }
-    .p-icon { font-size: 26px; margin-bottom: 2px; }
-    .p-text { font-size: 13px; font-weight: 700; color: #1e293b; }
+    .p-icon { font-size: 22px; margin-bottom: 2px; }
+    .p-text { font-size: 11px; font-weight: 700; color: #1e293b; text-align: center; }
 
-    /* GÖRÜNMEZ BUTON KATMANI (Sihirli Kısım) */
-    /* Streamlit butonunu tamamen şeffaf yapıp kutunun üzerine yayıyoruz */
+    /* GÖRÜNMEZ BUTON: Kutuyla tam örtüşür ve tıklamayı sağlar */
     .stButton {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -47,14 +45,15 @@ st.markdown("""
     }
     .stButton > button {
         width: 100% !important;
-        height: 100px !important;
+        height: 90px !important;
         background: transparent !important;
-        color: transparent !important; /* btn_1 yazılarını gizler */
+        color: transparent !important;
         border: none !important;
-        box-shadow: none !important;
+        padding: 0 !important;
     }
-    .stButton > button:hover { background: rgba(0,0,0,0.03) !important; }
-    .stButton > button:active { background: rgba(0,0,0,0.07) !important; }
+    
+    /* Streamlit'in otomatik kolon boşluklarını mobilde kapat */
+    [data-testid="column"] { width: 100% !important; flex: 1 1 calc(33.33% - 8px) !important; min-width: 30% !important; }
 
     .main-header {
         background: linear-gradient(135deg, #0f2027 0%, #2c5364 100%);
@@ -67,37 +66,35 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. PANEL BAŞLIĞI ---
+# --- 3. BAŞLIK ---
 st.markdown('<div class="main-header"><h1>🏡 Ayvalık Asistanı</h1></div>', unsafe_allow_html=True)
 
-# --- 4. BUTON GRİD SİSTEMİ ---
-# İçeriğine dokunmadan, butonları bu grid yapısına oturtuyoruz.
+# --- 4. MENÜ SİSTEMİ (İÇERİĞİ KORUYARAK) ---
+def menu_item(label, icon, target, key):
+    st.markdown(f'<div class="p-box"><div class="p-icon">{icon}</div><div class="p-text">{label}</div>', unsafe_allow_html=True)
+    if st.button("", key=key):
+        st.session_state.secili_sayfa = target
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# Grid Başlangıcı
 st.markdown('<div class="p-grid">', unsafe_allow_html=True)
 
-def menu_item(label, icon, target, key):
-    # Bu yapı görsel kutu ile görünmez butonu üst üste bindirir
-    with st.container():
-        st.markdown(f'<div class="p-box"><div class="p-icon">{icon}</div><div class="p-text">{label}</div>', unsafe_allow_html=True)
-        if st.button("", key=key): # Boş etiketli buton tamamen şeffaftır
-            st.session_state.secili_sayfa = target
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+# 3 satır 3 sütun düzeni
+cols = st.columns(3)
+with cols[0]: menu_item("Asistan", "🤖", "asistan", "b1")
+with cols[1]: menu_item("Yemek", "🍽️", "yemek", "b2")
+with cols[2]: menu_item("Pizza", "🍕", "pizza", "b3")
 
-# Grid elemanlarını st.columns ile yan yana diziyoruz
-c1, c2, c3 = st.columns(3)
-with c1: menu_item("Asistan", "🤖", "asistan", "b1")
-with c2: menu_item("Yemek", "🍽️", "yemek", "b2")
-with c3: menu_item("Pizza", "🍕", "pizza", "b3")
+cols2 = st.columns(3)
+with cols2[0]: menu_item("Kahve", "☕", "kahve", "b4")
+with cols2[1]: menu_item("Beach", "🏖️", "beach", "b5")
+with cols2[2]: menu_item("Kokteyl", "🍸", "kokteyl", "b6")
 
-c4, c5, c6 = st.columns(3)
-with c4: menu_item("Kahve", "☕", "kahve", "b4")
-with c5: menu_item("Beach", "🏖️", "beach", "b5")
-with c6: menu_item("Kokteyl", "🍸", "kokteyl", "b6")
-
-c7, c8, c9 = st.columns(3)
-with c7: menu_item("Eğlence", "🎉", "eglence", "b7")
-with c8: menu_item("Taksi", "🚕", "taksi", "b8")
-with c9: menu_item("Eczane", "💊", "eczane", "b9")
+cols3 = st.columns(3)
+with cols3[0]: menu_item("Eğlence", "🎉", "eglence", "b7")
+with cols3[1]: menu_item("Taksi", "🚕", "taksi", "b8")
+with cols3[2]: menu_item("Eczane", "💊", "eczane", "b9")
 
 st.markdown('</div>', unsafe_allow_html=True)
 st.divider()
@@ -116,45 +113,16 @@ MEKAN_VERISI = {
 def kart_bas(key):
     if key in MEKAN_VERISI:
         for m in MEKAN_VERISI[key]:
-            st.markdown(f'''
-                <div class="venue-card">
-                    <div>
-                        <h4 style="margin:0; font-size:14px;">{m["ad"]}</h4>
-                        <p style="margin:0; font-size:11px; color:#666;">{m["oz"]}</p>
-                    </div>
-                    <div class="venue-link">
-                        <a href="{m["ln"]}" target="_blank" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:10px; font-weight:bold;">📍 KONUM</a>
-                    </div>
-                </div>
-            ''', unsafe_allow_html=True)
+            st.markdown(f'<div class="venue-card"><div><h4 style="margin:0; font-size:14px;">{m["ad"]}</h4><p style="margin:0; font-size:11px; color:#666;">{m["oz"]}</p></div><div class="venue-link"><a href="{m["ln"]}" target="_blank" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:10px; font-weight:bold;">📍 KONUM</a></div></div>', unsafe_allow_html=True)
 
 # --- 7. SAYFA MANTIĞI ---
 s = st.session_state.secili_sayfa
-
 if s == "asistan":
     st.markdown("##### 🤖 Size Nasıl Yardımcı Olabilirim?")
-    u_in = st.chat_input("Pizza, Kahve, Plaj...")
-    if u_in:
-        with st.chat_message("user"): st.write(u_in)
-        low = u_in.lower()
-        found = False
-        for k in MEKAN_VERISI.keys():
-            if k in low:
-                with st.chat_message("assistant"):
-                    st.success(f"İşte **{k.upper()}** önerileri:")
-                    kart_bas(k)
-                found = True
-                break
-        if not found:
-            with st.chat_message("assistant"): st.write("Lütfen yukarıdaki menüleri kullanın.")
-elif s == "yemek":
-    st.markdown("##### 🍽️ Yemek & Pizza")
-    kart_bas("yemek")
-    kart_bas("pizza")
+    st.chat_input("Pizza, Kahve, Plaj...")
 elif s == "taksi":
     st.markdown('<div class="venue-card"><h4>🚕 Sarımsaklı Taksi</h4><div class="venue-link"><a href="tel:02663961010" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:bold;">📞 ARA</a></div></div>', unsafe_allow_html=True)
 elif s == "eczane":
     st.markdown('<div class="venue-card"><h4>💊 Nöbetçi Eczaneler</h4><div class="venue-link"><a href="https://www.aeo.org.tr/NobetciEczaneler" target="_blank" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:bold;">🔍 GÖR</a></div></div>', unsafe_allow_html=True)
 else:
-    st.markdown(f"##### ✨ {s.capitalize()} Önerileri")
     kart_bas(s)
