@@ -117,24 +117,33 @@ def asistan_cevap(soru):
                 mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
                 return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. 😊"
 
-    # 2. KADEME: GEMINI (Eğer listede yoksa zekayı kullan)
+   # 2. KADEME: GEMINI (Eğer yukarıdaki if'lere takılmazsa)
     try:
-        # En kararlı model ismi: gemini-1.5-flash
+        # En stabil model
         model = genai.GenerativeModel('gemini-1.5-flash')
         
-        prompt = f"""
-        Sen Detayvalik.io asistanısın. Samimi bir dille cevap ver. 
-        Kullanıcıya şu listedeki yerleri öner: {MEKAN_VERISI}
-        Eğer sorusu kahvaltı gibi listede olmayan bir şeyse, listedeki yemek kategorisindeki 
-        yerlerin kahvaltı/brunch için de uygun olabileceğini belirterek (Ayna Cunda gibi) cevap ver.
-        Soru: {soru}
-        """
+        # Promptu biraz daha sadeleştirelim
+        prompt_text = f"Sen bir Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Listeye göre kısa cevap ver."
         
-        response = model.generate_content(prompt)
-        return response.text
+        # Güvenlik ayarlarını gevşetelim ki basit sorular takılmasın
+        response = model.generate_content(
+            prompt_text,
+            safety_settings=[
+                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+            ]
+        )
         
-    except Exception:
-        return "Şu an gurme zekamda bir yoğunluk var, ama sol menüden tüm mekanlarımıza ulaşabilirsin! 🍽️"
+        if response and response.text:
+            return response.text
+        else:
+            return "Şu an bu soruya yanıt veremiyorum, lütfen başka bir şey sor! 😊"
+
+    except Exception as e:
+        # Hatanın ne olduğunu ekranda gizlice görmek için (sadece sen anlarsın)
+        return f"Bağlantı tazelemem gerekiyor, lütfen 10 saniye sonra tekrar dene! (Hata: {str(e)[:20]})"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
