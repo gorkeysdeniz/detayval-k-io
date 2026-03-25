@@ -1,7 +1,6 @@
 import streamlit as st
 import google.generativeai as genai
-# Google'ın ana yolunu (v1) kullanmaya zorlayan gizli ayar:
-from google.generativeai.types import RequestOptions
+
 
 
 # --- 1. AYARLAR ---
@@ -109,23 +108,21 @@ def asistan_cevap(soru):
     soru_lower = soru.lower()
     
     # 1. KADEME: PYTHON KONTROLÜ (Hızlı Yanıt)
+    # Burada 'mekan' anahtar kelimesiyle basit bir eşleşme yapıyoruz
     for kategori, mekanlar in MEKAN_VERISI.items():
         if kategori in soru_lower:
             isimler = [m['ad'] for m in mekanlar[:3]]
-            return f"Ayvalık'ta en sevilen {kategori} noktaları: **{', '.join(isimler)}**. Detayvalik.io iyi eğlenceler diler! 😊"
+            return f"Ayvalık'ta sevilen {kategori} noktaları: **{', '.join(isimler)}**. Detayvalik.io iyi eğlenceler diler! 😊"
 
-    # 2. KADEME: GEMINI (v1 Zorlaması ve 404 Sonu)
+    # 2. KADEME: GEMINI (En Sade ve Hata Vermez Çağrı)
     try:
-        # v1 sürümünü açıkça belirtiyoruz, bu 404'ü bitirir!
+        # En standart model ismine geri dönüyoruz
         model = genai.GenerativeModel('gemini-1.5-flash')
         
-        prompt = f"Sen Detayvalik.io asistanısın. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
+        prompt = f"Sen Detayvalik.io rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
         
-        # API versiyonunu v1 olarak sabitleyerek çağırıyoruz
-        response = model.generate_content(
-            prompt,
-            request_options=RequestOptions(api_version='v1')
-        )
+        # Hiçbir ekstra parametre (RequestOptions vb.) eklemeden en yalın hali:
+        response = model.generate_content(prompt)
         
         if response and response.text:
             return response.text
@@ -133,7 +130,13 @@ def asistan_cevap(soru):
             return "Şu an yanıt hazırlayamadım, tekrar sorar mısın? 😊"
 
     except Exception as e:
-        return f"Bağlantı tazelemem gerekiyor (Detay: {str(e)[:40]})"
+        # Hata devam ederse 'gemini-pro' modelini dene (B Planı)
+        try:
+            model_yedek = genai.GenerativeModel('gemini-pro')
+            res = model_yedek.generate_content(prompt)
+            return res.text
+        except:
+            return f"Bağlantı hatası: {str(e)[:40]}... Lütfen sayfayı yenileyip 10 saniye sonra tekrar dene! ✨"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
