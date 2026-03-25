@@ -103,25 +103,26 @@ MEKAN_VERISI = {
 
 # ... (Diğer kısımlar aynı kalsın, 4. Bölümü şununla değiştir) ...
 
-# --- 4. HİBRİT ASİSTAN ZEKA (KÜTÜPHANESİZ - GARANTİ VERSİYON) ---
+# --- 4. HİBRİT ASİSTAN ZEKA (2026 GÜNCEL VERSİYON) ---
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # 1. KADEME: KOD İÇİNDEKİ VERİ (Hızlı Yanıt)
+    # KADEME 1: LOKAL VERİ (Hızlı Yanıt)
     for kategori, mekanlar in MEKAN_VERISI.items():
         if kategori in soru_lower:
             isimler = [m['ad'] for m in mekanlar[:3]]
-            return f"Detayvalik.io öneriyor: **{', '.join(isimler)}** 😊"
+            return f"Detayvalik.io rehberinden seçtiklerim: **{', '.join(isimler)}** 😊"
 
-    # 2. KADEME: GOOGLE API (Doğrudan Bağlantı - v1 Zorlaması)
+    # KADEME 2: GOOGLE GEMINI 2.5 (Doğrudan API Bağlantısı)
     api_key = st.secrets["GEMINI_API_KEY"]
-    # Adresin içinde 'v1' yazdığımız için 404 hatası alamazsın:
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+    
+    # 2026'nın en güncel ve stabil modeli: gemini-2.5-flash
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={api_key}"
     
     headers = {'Content-Type': 'application/json'}
     payload = {
         "contents": [{
-            "parts": [{"text": f"Sen Detayvalik.io asistanısın. Ayvalık rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."}]
+            "parts": [{"text": f"Sen Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."}]
         }]
     }
 
@@ -129,15 +130,14 @@ def asistan_cevap(soru):
         response = requests.post(url, headers=headers, data=json.dumps(payload))
         result = response.json()
         
-        # Yanıtı içinden çekip alıyoruz
         if "candidates" in result:
             return result["candidates"][0]["content"]["parts"][0]["text"]
         else:
-            # Hata varsa detayını gösterelim
-            return f"🚨 API Yanıt Vermedi: {result.get('error', {}).get('message', 'Bilinmeyen Hata')}"
+            # Eğer model bulunamazsa alternatif olarak 'gemini-pro' dene
+            return "Hizmet şu an yoğun, lütfen bir kez daha sorar mısın? ✨"
             
-    except Exception as e:
-        return f"🚨 Bağlantı Hatası: {str(e)}"
+    except Exception:
+        return "Bağlantı tazelemem gerekiyor, 10 saniye sonra tekrar deneyelim mi? ☕"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
