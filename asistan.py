@@ -101,64 +101,52 @@ MEKAN_VERISI = {
     ]
 }
 
-# --- 4. HİBRİT ASİSTAN ZEKA (GEMINI + GROQ YEDEKLİ) ---
+# --- 4. HİBRİT ASİSTAN ZEKA (YENİLENMİŞ - KESİN ÇÖZÜM) ---
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # 1. KADEME: LOKAL VERİ (Senin listen)
+    # KADEME 1: LOKAL VERİ KONTROLÜ (Senin listendekiler)
     for kategori, mekanlar in MEKAN_VERISI.items():
         if kategori in soru_lower:
             isimler = [m['ad'] for m in mekanlar[:3]]
             return f"Detayvalik.io rehberinden seçtiklerim: **{', '.join(isimler)}** 😊"
 
-    # 2. KADEME: GEMINI 2.5 FLASH DENEMESİ
+    # --- EĞER LİSTEDE YOKSA BURADAN AŞAĞIYA AKAR (AI DEVREYE GİRER) ---
+
+    # KADEME 2: GEMINI 2.5 FLASH DENEMESİ
     try:
         gemini_key = st.secrets["GEMINI_API_KEY"]
-        # v1beta üzerinden en güncel modele vuruyoruz
         gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
-        g_payload = {
-            "contents": [{
-                "parts": [{"text": f"Sen Ayvalık rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Çok kısa cevap ver."}]
-            }]
-        }
+        g_payload = {"contents": [{"parts": [{"text": f"Sen Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Çok kısa cevap ver."}]}]}
         
         g_res = requests.post(gemini_url, json=g_payload, timeout=5)
         g_data = g_res.json()
         
-        # Eğer yanıt gelirse döndür, gelmezse (High Demand vb.) alt satıra (Groq) geç
         if "candidates" in g_data:
             return g_data["candidates"][0]["content"]["parts"][0]["text"]
     except:
-        pass # Gemini'de herhangi bir hata olursa sessizce Groq'a atla
+        pass # Gemini meşgulse (High Demand vb.) sessizce Groq'a geç
 
-    # 3. KADEME: GROQ (LLAMA 3.3) - KESİN ÇÖZÜM
+    # KADEME 3: GROQ (LLAMA 3.3) - KESİN ÇÖZÜM (GEMINI MEŞGULSE ÇALIŞIR)
     try:
         groq_key = st.secrets["GROQ_API_KEY"]
         groq_url = "https://api.groq.com/openai/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {groq_key}", 
-            "Content-Type": "application/json"
-        }
+        headers = {"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"}
         
         l_payload = {
             "model": "llama-3.3-70b-versatile",
             "messages": [
-                {"role": "system", "content": f"Sen bir Ayvalık rehberisin. Elindeki veriler: {MEKAN_VERISI}"},
+                {"role": "system", "content": f"Sen bir Ayvalık rehberisin. Elindeki veriler: {MEKAN_VERISI}. Listede olmayanları genel bilginle yanıtla."},
                 {"role": "user", "content": f"{soru}. Çok kısa ve samimi bir cevap ver."}
-            ],
-            "max_tokens": 200
+            ]
         }
         
-        l_res = requests.post(groq_url, headers=headers, json=l_payload, timeout=10)
+        l_res = requests.post(groq_url, headers=headers, json=l_payload, timeout=8)
         l_data = l_res.json()
+        return l_data['choices'][0]['message']['content']
         
-        if "choices" in l_data:
-            return l_data['choices'][0]['message']['content']
-        else:
-            return "Ayvalık sokaklarında ufak bir sinyal kesintisi... Lütfen tekrar dener misin? 🌊"
-            
-    except Exception as e:
-        return f"Bağlantı hatası: {str(e)}"
+    except Exception:
+        return "Ayvalık sokaklarında ufak bir kesinti... Hemen tekrar dener misin? 🌊"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
