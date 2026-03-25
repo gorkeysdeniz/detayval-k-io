@@ -112,23 +112,28 @@ def asistan_cevap(soru):
             isimler = [m['ad'] for m in mekanlar[:3]]
             return f"Ayvalık'ta en sevilen {kategori} noktaları: **{', '.join(isimler)}**. Detayvalik.io iyi eğlenceler diler! 😊"
 
-    # 2. KADEME: GEMINI (v1beta 404 Hatasını Bitiren Çağrı)
+    # 2. KADEME: GEMINI (404 Hatasını Bitiren 'Latest' Çağrısı)
     try:
-        # En güncel ve stabil model: gemini-1.5-flash
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # 'latest' eki, sürüm karmaşasını (v1 vs v1beta) bypass eder
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
         
-        prompt = f"Sen Detayvalik.io asistanısın. Elindeki liste: {MEKAN_VERISI}. Bu listeye sadık kalarak şu soruya kısa, samimi ve Ayvalıklı gibi cevap ver: {soru}"
+        prompt = f"Sen Detayvalik.io asistanısın. Elindeki liste: {MEKAN_VERISI}. Bu listeye sadık kalarak şu soruya kısa ve samimi cevap ver: {soru}"
         
         response = model.generate_content(prompt)
         
         if response and response.text:
             return response.text
         else:
-            return "Şu an bu soruya yanıt hazırlayamadım, tekrar sorar mısın? 😊"
+            return "Şu an yanıt hazırlayamadım, tekrar sorar mısın? 😊"
 
     except Exception as e:
-        # Hata devam ederse detayını burada görelim
-        return f"Bağlantı tazelemem gerekiyor. (Hata Detayı: {str(e)[:50]})"
+        # Eğer hala hata verirse, model ismini en düz haliyle tekrar dene (Fallback)
+        try:
+            model_yedek = genai.GenerativeModel('gemini-1.5-flash')
+            res = model_yedek.generate_content(prompt)
+            return res.text
+        except:
+            return f"Bağlantı hatası: {str(e)[:40]}... Lütfen 10 saniye sonra tekrar dene! ✨"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
