@@ -103,41 +103,44 @@ MEKAN_VERISI = {
 
 # ... (Diğer kısımlar aynı kalsın, 4. Bölümü şununla değiştir) ...
 
-# --- 4. HİBRİT ASİSTAN ZEKA (2026 GÜNCEL VERSİYON) ---
+# --- 4. HİBRİT ASİSTAN ZEKA (YENİLENMİŞ MANTIK) ---
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # KADEME 1: LOKAL VERİ (Hızlı Yanıt)
+    # KADEME 1: LOKAL VERİ KONTROLÜ
+    found_local = False
     for kategori, mekanlar in MEKAN_VERISI.items():
         if kategori in soru_lower:
             isimler = [m['ad'] for m in mekanlar[:3]]
             return f"Detayvalik.io rehberinden seçtiklerim: **{', '.join(isimler)}** 😊"
+            found_local = True
 
-    # KADEME 2: GOOGLE GEMINI 2.5 (Doğrudan API Bağlantısı)
-    api_key = st.secrets["GEMINI_API_KEY"]
-    
-    # 2026'nın en güncel ve stabil modeli: gemini-2.5-flash
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={api_key}"
-    
-    headers = {'Content-Type': 'application/json'}
-    payload = {
-        "contents": [{
-            "parts": [{"text": f"Sen Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."}]
-        }]
-    }
-
-    try:
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
-        result = response.json()
+    # KADEME 2: EĞER LOKALDE YOKSA GEMINI'YE SOR
+    if not found_local:
+        api_key = st.secrets["GEMINI_API_KEY"]
+        # En güncel model ismini ve sürümünü (v1) kullanıyoruz
+        url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
         
-        if "candidates" in result:
-            return result["candidates"][0]["content"]["parts"][0]["text"]
-        else:
-            # Eğer model bulunamazsa alternatif olarak 'gemini-pro' dene
-            return "Hizmet şu an yoğun, lütfen bir kez daha sorar mısın? ✨"
+        headers = {'Content-Type': 'application/json'}
+        payload = {
+            "contents": [{
+                "parts": [{"text": f"Sen Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Bu listede olmayan yerleri de genel bilgilerinle yanıtla. Soru: {soru}. Çok kısa cevap ver."}]
+            }]
+        }
+
+        try:
+            response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=10)
+            result = response.json()
             
-    except Exception:
-        return "Bağlantı tazelemem gerekiyor, 10 saniye sonra tekrar deneyelim mi? ☕"
+            if "candidates" in result:
+                return result["candidates"][0]["content"]["parts"][0]["text"]
+            else:
+                # Hata kodunu gösterelim ki teşhis koyalım
+                error_msg = result.get('error', {}).get('message', 'Bilinmeyen API hatası')
+                return f"Bağlantı tazelemem gerekiyor (Hata: {error_msg})"
+                
+        except Exception as e:
+            return "Şu an biraz yoğunum, lütfen 10 saniye sonra tekrar dener misin? ✨"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
