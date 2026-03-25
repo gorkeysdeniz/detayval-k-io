@@ -1,5 +1,7 @@
-import google.generativeai as genai
 import streamlit as st
+import google.generativeai as genai
+# Google'ın ana yolunu (v1) kullanmaya zorlayan gizli ayar:
+from google.generativeai.types import RequestOptions
 
 
 # --- 1. AYARLAR ---
@@ -112,14 +114,18 @@ def asistan_cevap(soru):
             isimler = [m['ad'] for m in mekanlar[:3]]
             return f"Ayvalık'ta en sevilen {kategori} noktaları: **{', '.join(isimler)}**. Detayvalik.io iyi eğlenceler diler! 😊"
 
-    # 2. KADEME: GEMINI (404 Hatasını Bitiren 'Latest' Çağrısı)
+    # 2. KADEME: GEMINI (v1 Zorlaması ve 404 Sonu)
     try:
-        # 'latest' eki, sürüm karmaşasını (v1 vs v1beta) bypass eder
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        # v1 sürümünü açıkça belirtiyoruz, bu 404'ü bitirir!
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
-        prompt = f"Sen Detayvalik.io asistanısın. Elindeki liste: {MEKAN_VERISI}. Bu listeye sadık kalarak şu soruya kısa ve samimi cevap ver: {soru}"
+        prompt = f"Sen Detayvalik.io asistanısın. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
         
-        response = model.generate_content(prompt)
+        # API versiyonunu v1 olarak sabitleyerek çağırıyoruz
+        response = model.generate_content(
+            prompt,
+            request_options=RequestOptions(api_version='v1')
+        )
         
         if response and response.text:
             return response.text
@@ -127,13 +133,7 @@ def asistan_cevap(soru):
             return "Şu an yanıt hazırlayamadım, tekrar sorar mısın? 😊"
 
     except Exception as e:
-        # Eğer hala hata verirse, model ismini en düz haliyle tekrar dene (Fallback)
-        try:
-            model_yedek = genai.GenerativeModel('gemini-1.5-flash')
-            res = model_yedek.generate_content(prompt)
-            return res.text
-        except:
-            return f"Bağlantı hatası: {str(e)[:40]}... Lütfen 10 saniye sonra tekrar dene! ✨"
+        return f"Bağlantı tazelemem gerekiyor (Detay: {str(e)[:40]})"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
