@@ -101,43 +101,34 @@ MEKAN_VERISI = {
 }
 
 # --- 4. HİBRİT ASİSTAN ZEKA ---
-# API Yapılandırması
-if "GEMINI_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-else:
-    st.error("API Key bulunamadı! Lütfen Secrets ayarlarını kontrol edin.")
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # 1. KADEME: PYTHON KONTROLÜ
+    # 1. KADEME: PYTHON KONTROLÜ (Hızlı Yanıt)
     for kategori, mekanlar in MEKAN_VERISI.items():
-        if kategori in soru_lower or (kategori == "yemek" and ("restoran" in soru_lower or "balık" in soru_lower)):
-            odullu = [m['ad'] for m in mekanlar if "🏅" in m['oz']]
-            if odullu:
-                return f"Detayvalik.io öneriyor: Özellikle **Gault Millau** ödüllü olan **{', '.join(odullu)}** mekanlarını mutlaka denemelisiniz. ✨"
-            else:
-                mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
-                return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. 😊"
+        if kategori in soru_lower:
+            isimler = [m['ad'] for m in mekanlar[:3]]
+            return f"Ayvalık'ta en sevilen {kategori} noktaları: **{', '.join(isimler)}**. Detayvalik.io iyi eğlenceler diler! 😊"
 
-    # 2. KADEME: GEMINI (En Garanti Çağrı)
+    # 2. KADEME: GEMINI (v1beta 404 Hatasını Bitiren Çağrı)
     try:
-        # En standart model ismi
-        model = genai.GenerativeModel('gemini-pro')
+        # En güncel ve stabil model: gemini-1.5-flash
+        model = genai.GenerativeModel('gemini-1.5-flash')
         
-        prompt_text = f"Sen bir Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
+        prompt = f"Sen Detayvalik.io asistanısın. Elindeki liste: {MEKAN_VERISI}. Bu listeye sadık kalarak şu soruya kısa, samimi ve Ayvalıklı gibi cevap ver: {soru}"
         
-        # Güvenlik ve Hata Kontrolü eklenmiş çağrı
-        response = model.generate_content(prompt_text)
+        response = model.generate_content(prompt)
         
         if response and response.text:
             return response.text
         else:
-            return "Şu an bu soruya yanıt veremiyorum, lütfen başka bir şey sor! 😊"
+            return "Şu an bu soruya yanıt hazırlayamadım, tekrar sorar mısın? 😊"
 
     except Exception as e:
-        # Hata mesajını ekrana basıyoruz ki neden "Oh No" dediğini anlayalım
-        return f"Bağlantı hatası oluştu: {str(e)}"
+        # Hata devam ederse detayını burada görelim
+        return f"Bağlantı tazelemem gerekiyor. (Hata Detayı: {str(e)[:50]})"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
