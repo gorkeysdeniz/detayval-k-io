@@ -103,33 +103,40 @@ MEKAN_VERISI = {
 
 # ... (Diğer kısımlar aynı kalsın, 4. Bölümü şununla değiştir) ...
 
-# --- 4. HİBRİT ASİSTAN ZEKA (SIRALI DENEME SİSTEMİ) ---
+# --- 4. HİBRİT ASİSTAN ZEKA (TEŞHİS VE HATA YAKALAMA MODU) ---
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # 1. KADEME: KOD İÇİNDEKİ VERİ (Ayvalık Rehberi)
+    # 1. KADEME: PYTHON KONTROLÜ (Kendi Listemiz)
+    # Eğer soru senin listende (pizza, kahve, yemek vb.) varsa Gemini'ye gitmez.
     for kategori, mekanlar in MEKAN_VERISI.items():
-        if kategori in soru_lower:
-            isimler = [m['ad'] for m in mekanlar[:3]]
-            return f"Detayvalik.io rehberinden öneriler: **{', '.join(isimler)}**. İyi eğlenceler! 😊"
+        if kategori in soru_lower or (kategori == "yemek" and ("restoran" in soru_lower or "balık" in soru_lower)):
+            odullu = [m['ad'] for m in mekanlar if "🏅" in m['oz']]
+            if odullu:
+                return f"Detayvalik.io öneriyor: Özellikle **Gault Millau** ödüllü olan **{', '.join(odullu)}** mekanlarını mutlaka denemelisiniz. ✨"
+            else:
+                mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
+                return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. 😊"
 
-    # 2. KADEME: GEMINI (SIRALI FALLBACK SİSTEMİ)
-    # 404 hatasını bitiren 'latest' ve 'flash' ikilisi
-    modeller = ['gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-pro']
-    prompt = f"Sen Detayvalik.io asistanısın. Ayvalık rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
-    
-    for m_adi in modeller:
-        try:
-            model = genai.GenerativeModel(m_adi)
-            response = model.generate_content(prompt)
-            if response and response.text:
-                return response.text
-        except:
-            continue # Hata verirse (404 vb.) bir sonrakine geç
-            
-    return "Şu an bağlantı kurulamadı, lütfen 10 saniye sonra tekrar dene! ✨"
+    # 2. KADEME: GEMINI (Hata Detayını Gösteren Mod)
+    try:
+        # En stabil model ismiyle deniyoruz
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        prompt_text = f"Sen Detayvalik.io asistanısın. Ayvalık rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
+        response = model.generate_content(prompt_text)
+        
+        if response and response.text:
+            return response.text
+        else:
+            return "Cevap boş döndü, lütfen soruyu tekrar iletir misin? 😊"
+
+    except Exception as e:
+        # HATA NEDİR? (Ekranda kırmızı alarm yerine bu yazıyı göreceğiz)
+        # Bu mesajı gördüğünde bana buradaki hatayı yaz kanka.
+        return f"🚨 API Hatası Oluştu: {str(e)}"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
