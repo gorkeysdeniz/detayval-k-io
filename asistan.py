@@ -103,47 +103,45 @@ MEKAN_VERISI = {
 
 # ... (Diğer kısımlar aynı kalsın, 4. Bölümü şununla değiştir) ...
 
-# --- 4. HİBRİT ASİSTAN ZEKA (GEMINI 2.5 FLASH GÜNCEL) ---
+# --- 4. HİBRİT ASİSTAN ZEKA (YEDEKLİ - ÇİFT MOTORLU SİSTEM) ---
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # KADEME 1: LOKAL VERİ (Senin listendeki mekanlar)
+    # KADEME 1: LOKAL VERİ
     for kategori, mekanlar in MEKAN_VERISI.items():
         if kategori in soru_lower:
             isimler = [m['ad'] for m in mekanlar[:3]]
             return f"Detayvalik.io rehberinden seçtiklerim: **{', '.join(isimler)}** 😊"
 
-    # KADEME 2: GEMINI 2.5 FLASH (API Bağlantısı)
-    # st.secrets içinde GEMINI_API_KEY tanımlı olmalıdır.
+    # KADEME 2: GEMINI SİSTEMİ (ÖNCE 2.5, OLMAZSA 1.5)
     api_key = st.secrets["GEMINI_API_KEY"]
-    
-    # Google AI Studio'daki en güncel endpoint: v1beta ve gemini-2.5-flash
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-    
     headers = {'Content-Type': 'application/json'}
     payload = {
         "contents": [{
-            "parts": [{"text": f"Sen bir Ayvalık rehberisin. Elindeki liste şudur: {MEKAN_VERISI}. Bu listede olmayan yerleri de (örneğin kahvaltı mekanları, tostçular, gezilecek yerler) genel bilgilerinle yanıtla. Soru: {soru}. Çok kısa ve samimi cevap ver."}]
+            "parts": [{"text": f"Sen bir Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Çok kısa cevap ver."}]
         }]
     }
 
-    try:
-        # Zaman aşımını 15 saniye yaptık ki AI düşünürken kopmasın
-        response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=15)
-        result = response.json()
-        
-        if "candidates" in result:
-            # Başarılı yanıt
-            return result["candidates"][0]["content"]["parts"][0]["text"]
-        elif "error" in result:
-            # Hata mesajını doğrudan ekrana basıyoruz ki sorunu görelim
-            return f"🚨 Gemini 2.5 Hatası: {result['error']['message']}"
-        else:
-            return "Şu an cevap hazırlayamadım, tekrar dener misin? ✨"
+    # Denenecek model listesi (Sırasıyla)
+    modeller = [
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+    ]
+
+    for base_url in modeller:
+        try:
+            url = f"{base_url}?key={api_key}"
+            response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=10)
+            result = response.json()
             
-    except Exception as e:
-        # Bağlantı veya kütüphane hatası olursa:
-        return f"🚨 Bağlantı Hatası: {str(e)}"
+            if "candidates" in result:
+                return result["candidates"][0]["content"]["parts"][0]["text"]
+            # Eğer 'High Demand' hatası gelirse döngü devam eder, bir sonraki modeli dener
+            continue 
+        except Exception:
+            continue
+
+    return "Ayvalık sokaklarında sinyal biraz zayıf, lütfen 5 saniye sonra tekrar sorar mısın? 🌊"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
