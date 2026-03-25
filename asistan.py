@@ -101,27 +101,25 @@ MEKAN_VERISI = {
     ]
 }
 
-# --- 4. HİBRİT ASİSTAN ZEKA ---
+
+      # --- 4. HİBRİT ASİSTAN ZEKA ---
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # 1. KADEME: PYTHON KONTROLÜ (Hızlı Yanıt)
-    # Burada 'mekan' anahtar kelimesiyle basit bir eşleşme yapıyoruz
+    # 1. KADEME: KOD İÇİNDEKİ VERİ (Ayvalık Rehberi)
     for kategori, mekanlar in MEKAN_VERISI.items():
         if kategori in soru_lower:
             isimler = [m['ad'] for m in mekanlar[:3]]
-            return f"Ayvalık'ta sevilen {kategori} noktaları: **{', '.join(isimler)}**. Detayvalik.io iyi eğlenceler diler! 😊"
+            return f"Detayvalik.io öneriyor: **{', '.join(isimler)}**. İyi eğlenceler! 😊"
 
-    # 2. KADEME: GEMINI (En Sade ve Hata Vermez Çağrı)
+    # 2. KADEME: GEMINI (En Sağlam Çağrı)
     try:
-        # En standart model ismine geri dönüyoruz
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # Geçen seferki gibi en düz ismi kullanıyoruz
+        model = genai.GenerativeModel('gemini-pro')
         
-        prompt = f"Sen Detayvalik.io rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
-        
-        # Hiçbir ekstra parametre (RequestOptions vb.) eklemeden en yalın hali:
+        prompt = f"Sen bir Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
         response = model.generate_content(prompt)
         
         if response and response.text:
@@ -130,13 +128,13 @@ def asistan_cevap(soru):
             return "Şu an yanıt hazırlayamadım, tekrar sorar mısın? 😊"
 
     except Exception as e:
-        # Hata devam ederse 'gemini-pro' modelini dene (B Planı)
+        # Eğer hala 404 verirse, otomatik olarak '1.5-flash' deneyecek
         try:
-            model_yedek = genai.GenerativeModel('gemini-pro')
-            res = model_yedek.generate_content(prompt)
-            return res.text
+            model_flash = genai.GenerativeModel('gemini-1.5-flash')
+            res_flash = model_flash.generate_content(prompt)
+            return res_flash.text
         except:
-            return f"Bağlantı hatası: {str(e)[:40]}... Lütfen sayfayı yenileyip 10 saniye sonra tekrar dene! ✨"
+            return "Bağlantı tazelemem gerekiyor, lütfen 10 saniye sonra tekrar dene! ✨"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
