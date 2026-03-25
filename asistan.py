@@ -8,7 +8,7 @@ if "messages" not in st.session_state:
 if "secili_sayfa" not in st.session_state:
     st.session_state.secili_sayfa = "🤖 Asistan"
 
-# --- 2. CSS (BÜYÜK MENÜLER & PREMİUM GÖRÜNÜM) ---
+# --- 2. CSS (DEĞİŞMEDİ - DEV BUTONLAR & PREMİUM GÖRÜNÜM) ---
 st.markdown("""
     <style>
     .stPills [data-testid="stBaseButton-secondaryPill"] {
@@ -32,7 +32,6 @@ st.markdown("""
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
     .venue-info h4 { margin: 0; font-size: 16px; color: #1e293b; }
-    /* Ödül yazısı rengi */
     .award-text { margin: 2px 0 0 0; font-size: 13px; color: #b45309; font-weight: 600; }
     .standard-text { margin: 2px 0 0 0; font-size: 13px; color: #64748b; }
     
@@ -43,58 +42,59 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. TAM VE GÜNCEL MEKAN VERİSİ ---
+# --- 3. MEKAN VERİSİ (LİNKLER DÜZELTİLDİ) ---
+# Link yapısı: https://www.google.com/maps/search/?api=1&query=Mekan+Adı+Ayvalık
 MEKAN_VERISI = {
     "kahve": [
-        {"ad": "Pinos Cafe", "oz": "Butik Kahve", "ln": "https://maps.app.goo.gl/6vA1FqZc9Y9M1zZf7"},
-        {"ad": "Crow Coffe", "oz": "3. Nesil Kahve", "ln": "https://maps.app.goo.gl/N9M7s7Jj7x7x7x7x7"},
-        {"ad": "Ivy Ayvalık", "oz": "Huzurlu Bahçe", "ln": "https://maps.app.goo.gl/m8K8s8Jj8x8x8x8x8"},
-        {"ad": "Daisy Küçükköy", "oz": "Sanat & Kahve", "ln": "https://maps.app.goo.gl/L9L9s9Jj9x9x9x9x9"},
-        {"ad": "Nona Cunda", "oz": "Cunda Esintisi", "ln": "https://maps.app.goo.gl/P2P2s2Jj2x2x2x2x2"},
-        {"ad": "Cafe Melin", "oz": "Keyifli Durak", "ln": "https://maps.app.goo.gl/R3R3s3Jj3x3x3x3x3"},
-        {"ad": "Declan", "oz": "Modern Coffee", "ln": "https://maps.app.goo.gl/S4S4s4Jj4x4x4x4x4"},
-        {"ad": "AIMA", "oz": "Akademik Lezzet", "ln": "https://maps.app.goo.gl/T5T5s5Jj5x5x5x5x5"}
+        {"ad": "Pinos Cafe", "oz": "Butik Kahve", "ln": "https://www.google.com/maps/search/?api=1&query=Pinos+Cafe+Ayvalık"},
+        {"ad": "Crow Coffe", "oz": "3. Nesil Kahve", "ln": "https://www.google.com/maps/search/?api=1&query=Crow+Coffee+Ayvalık"},
+        {"ad": "Ivy Ayvalık", "oz": "Huzurlu Bahçe", "ln": "https://www.google.com/maps/search/?api=1&query=Ivy+Ayvalık"},
+        {"ad": "Daisy Küçükköy", "oz": "Sanat & Kahve", "ln": "https://www.google.com/maps/search/?api=1&query=Daisy+Küçükköy"},
+        {"ad": "Nona Cunda", "oz": "Cunda Esintisi", "ln": "https://www.google.com/maps/search/?api=1&query=Nona+Cunda"},
+        {"ad": "Cafe Melin", "oz": "Keyifli Durak", "ln": "https://www.google.com/maps/search/?api=1&query=Cafe+Melin+Cunda"},
+        {"ad": "Declan", "oz": "Modern Coffee", "ln": "https://www.google.com/maps/search/?api=1&query=Declan+Coffee+Ayvalık"},
+        {"ad": "AIMA", "oz": "Akademik Lezzet", "ln": "https://www.google.com/maps/search/?api=1&query=AIMA+Ayvalık"}
     ],
     "pizza": [
-        {"ad": "Pizza Teo", "oz": "Odun Ateşi", "ln": "https://maps.app.goo.gl/U6U6s6Jj6x6x6x6x6"},
-        {"ad": "Uno Cunda", "oz": "İtalyan Klasiği", "ln": "https://maps.app.goo.gl/V7V7s7Jj7x7x7x7x7"},
-        {"ad": "Tino Ristorante", "oz": "Pizzeria", "ln": "https://maps.app.goo.gl/W8W8s8Jj8x8x8x8x8"},
-        {"ad": "Küçük İtalya", "oz": "Napoliten", "ln": "https://maps.app.goo.gl/X9X9s9Jj9x9x9x9x9"},
-        {"ad": "Cunda Luna", "oz": "Bahçe & Pizza", "ln": "https://maps.app.goo.gl/Y1Y1s1Jj1x1x1x1x1"}
+        {"ad": "Pizza Teo", "oz": "Odun Ateşi", "ln": "https://www.google.com/maps/search/?api=1&query=Pizza+Teo+Ayvalık"},
+        {"ad": "Uno Cunda", "oz": "İtalyan Klasiği", "ln": "https://www.google.com/maps/search/?api=1&query=Uno+Cunda"},
+        {"ad": "Tino Ristorante", "oz": "Pizzeria", "ln": "https://www.google.com/maps/search/?api=1&query=Tino+Ristorante+Ayvalık"},
+        {"ad": "Küçük İtalya", "oz": "Napoliten", "ln": "https://www.google.com/maps/search/?api=1&query=Küçük+İtalya+Ayvalık"},
+        {"ad": "Cunda Luna", "oz": "Bahçe & Pizza", "ln": "https://www.google.com/maps/search/?api=1&query=Cunda+Luna"}
     ],
     "yemek": [
-        {"ad": "Ayna Cunda", "oz": "🏅 Gault Millau Ödülü", "ln": "https://maps.app.goo.gl/Z2Z2s2Jj2x2x2x2x2"},
-        {"ad": "By Nihat", "oz": "🏅 Gault Millau Ödülü", "ln": "https://maps.app.goo.gl/A3A3s3Jj3x3x3x3x3"},
-        {"ad": "Ayvalık Balıkçısı", "oz": "🏅 Gault Millau Ödülü", "ln": "https://maps.app.goo.gl/B4B4s4Jj4x4x4x4x4"},
-        {"ad": "L'arancia", "oz": "Ege Mutfağı", "ln": "https://maps.app.goo.gl/C5C5s5Jj5x5x5x5x5"},
-        {"ad": "Ritüel 1873", "oz": "Modern Ege Mutfağı", "ln": "https://maps.app.goo.gl/D6D6s6Jj6x6x6x6x6"},
-        {"ad": "Köşebaşı", "oz": "Kebap & Ocakbaşı", "ln": "https://maps.app.goo.gl/E7E7s7Jj7x7x7x7x7"},
-        {"ad": "Papaz'ın Evi", "oz": "Tarihi Doku", "ln": "https://maps.app.goo.gl/F8F8s8Jj8x8x8x8x8"},
-        {"ad": "Karina Ayvalık", "oz": "Deniz Kenarı", "ln": "https://maps.app.goo.gl/G9G9s9Jj9x9x9x9x9"}
+        {"ad": "Ayna Cunda", "oz": "🏅 Gault Millau Ödülü", "ln": "https://www.google.com/maps/search/?api=1&query=Ayna+Cunda"},
+        {"ad": "By Nihat", "oz": "🏅 Gault Millau Ödülü", "ln": "https://www.google.com/maps/search/?api=1&query=By+Nihat+Cunda"},
+        {"ad": "Ayvalık Balıkçısı", "oz": "🏅 Gault Millau Ödülü", "ln": "https://www.google.com/maps/search/?api=1&query=Ayvalık+Balıkçısı"},
+        {"ad": "L'arancia", "oz": "Ege Mutfağı", "ln": "https://www.google.com/maps/search/?api=1&query=Larancia+Cunda"},
+        {"ad": "Ritüel 1873", "oz": "Modern Ege Mutfağı", "ln": "https://www.google.com/maps/search/?api=1&query=Ritüel+1873+Cunda"},
+        {"ad": "Köşebaşı", "oz": "Kebap & Ocakbaşı", "ln": "https://www.google.com/maps/search/?api=1&query=Köşebaşı+Ayvalık"},
+        {"ad": "Papaz'ın Evi", "oz": "Tarihi Doku", "ln": "https://www.google.com/maps/search/?api=1&query=Papazın+Evi+Ayvalık"},
+        {"ad": "Karina Ayvalık", "oz": "Deniz Kenarı", "ln": "https://www.google.com/maps/search/?api=1&query=Karina+Ayvalık"}
     ],
     "kokteyl": [
-        {"ad": "Ritüel 1873 Cunda", "oz": "İmza Kokteyller", "ln": "https://maps.app.goo.gl/H1H1s1Jj1x1x1x1x1"},
-        {"ad": "Cunda Luna", "oz": "Alkol & Müzik", "ln": "https://maps.app.goo.gl/I2I2s2Jj2x2x2x2x2"},
-        {"ad": "Ciello Cunda", "oz": "Roof Bar", "ln": "https://maps.app.goo.gl/J3J3s3Jj3x3x3x3x3"},
-        {"ad": "Vino Şarap Evi", "oz": "Şarap & Meze", "ln": "https://maps.app.goo.gl/K4K4s4Jj4x4x4x4x4"},
-        {"ad": "De Jong Cocktails", "oz": "Craft Cocktails", "ln": "https://maps.app.goo.gl/L5L5s5Jj5x5x5x5x5"},
-        {"ad": "Cunda Frenk", "oz": "Trend Mekan", "ln": "https://maps.app.goo.gl/M6M6s6Jj6x6x6x6x6"},
-        {"ad": "Felicita Küçükköy", "oz": "Bohem Atmosfer", "ln": "https://maps.app.goo.gl/N7N7s7Jj7x7x7x7x7"},
-        {"ad": "Cunda Kaktüs", "oz": "Gece Eğlencesi", "ln": "https://maps.app.goo.gl/O8O8s8Jj8x8x8x8x8"}
+        {"ad": "Ritüel 1873 Cunda", "oz": "İmza Kokteyller", "ln": "https://www.google.com/maps/search/?api=1&query=Ritüel+1873+Cunda"},
+        {"ad": "Cunda Luna", "oz": "Alkol & Müzik", "ln": "https://www.google.com/maps/search/?api=1&query=Cunda+Luna"},
+        {"ad": "Ciello Cunda", "oz": "Roof Bar", "ln": "https://www.google.com/maps/search/?api=1&query=Ciello+Cunda"},
+        {"ad": "Vino Şarap Evi", "oz": "Şarap & Meze", "ln": "https://www.google.com/maps/search/?api=1&query=Vino+Şarap+Evi+Cunda"},
+        {"ad": "De Jong Cocktails", "oz": "Craft Cocktails", "ln": "https://www.google.com/maps/search/?api=1&query=De+Jong+Cocktails+Cunda"},
+        {"ad": "Cunda Frenk", "oz": "Trend Mekan", "ln": "https://www.google.com/maps/search/?api=1&query=Cunda+Frenk"},
+        {"ad": "Felicita Küçükköy", "oz": "Bohem Atmosfer", "ln": "https://www.google.com/maps/search/?api=1&query=Felicita+Küçükköy"},
+        {"ad": "Cunda Kaktüs", "oz": "Gece Eğlencesi", "ln": "https://www.google.com/maps/search/?api=1&query=Cunda+Kaktüs"}
     ],
     "eglence": [
-        {"ad": "La Fuga", "oz": "Müzik & Dans", "ln": "https://maps.app.goo.gl/P9P9s9Jj9x9x9x9x9"},
-        {"ad": "Kraft", "oz": "Craft Beer", "ln": "https://maps.app.goo.gl/Q1Q1s1Jj1x1x1x1x1"},
-        {"ad": "Afişe Sahne", "oz": "Canlı Performans", "ln": "https://maps.app.goo.gl/R2R2s2Jj2x2x2x2x2"},
-        {"ad": "Aksi Pub", "oz": "Pub Kültürü", "ln": "https://maps.app.goo.gl/S3S3s3Jj3x3x3x3x3"}
+        {"ad": "La Fuga", "oz": "Müzik & Dans", "ln": "https://www.google.com/maps/search/?api=1&query=La+Fuga+Cunda"},
+        {"ad": "Kraft", "oz": "Craft Beer", "ln": "https://www.google.com/maps/search/?api=1&query=Kraft+Ayvalık"},
+        {"ad": "Afişe Sahne", "oz": "Canlı Performans", "ln": "https://www.google.com/maps/search/?api=1&query=Afişe+Sahne+Ayvalık"},
+        {"ad": "Aksi Pub", "oz": "Pub Kültürü", "ln": "https://www.google.com/maps/search/?api=1&query=Aksi+Pub+Ayvalık"}
     ],
     "beach": [
-        {"ad": "Ajlan Eos Beach", "oz": "Ücretli Beach", "ln": "https://maps.app.goo.gl/T4T4s4Jj4x4x4x4x4"},
-        {"ad": "Kesebir Cunda", "oz": "Ücretli Beach", "ln": "https://maps.app.goo.gl/U5U5s5Jj5x5x5x5x5"},
-        {"ad": "Sea Resort / Long", "oz": "Ücretli Beach", "ln": "https://maps.app.goo.gl/V6V6s6Jj6x6x6x6x6"},
-        {"ad": "Surya Beach", "oz": "Ücretli Beach", "ln": "https://maps.app.goo.gl/W7W7s7Jj7x7x7x7x7"},
-        {"ad": "Sarımsaklı Plajları", "oz": "Ücretsiz Plaj", "ln": "https://maps.app.goo.gl/X8X8s8Jj8x8x8x8x8"},
-        {"ad": "Badavut Plajı", "oz": "Ücretsiz Plaj", "ln": "https://maps.app.goo.gl/Y9Y9s9Jj9x9x9x9x9"}
+        {"ad": "Ajlan Eos Beach", "oz": "Ücretli Beach", "ln": "https://www.google.com/maps/search/?api=1&query=Ajlan+Eos+Beach"},
+        {"ad": "Kesebir Cunda", "oz": "Ücretli Beach", "ln": "https://www.google.com/maps/search/?api=1&query=Kesebir+Beach+Cunda"},
+        {"ad": "Sea Resort / Long", "oz": "Ücretli Beach", "ln": "https://www.google.com/maps/search/?api=1&query=Sea+Resort+Sarımsaklı"},
+        {"ad": "Surya Beach", "oz": "Ücretli Beach", "ln": "https://www.google.com/maps/search/?api=1&query=Surya+Beach+Sarımsaklı"},
+        {"ad": "Sarımsaklı Plajları", "oz": "Ücretsiz Plaj", "ln": "https://www.google.com/maps/search/?api=1&query=Sarımsaklı+Plajı"},
+        {"ad": "Badavut Plajı", "oz": "Ücretsiz Plaj", "ln": "https://www.google.com/maps/search/?api=1&query=Badavut+Plajı"}
     ]
 }
 
@@ -103,18 +103,16 @@ def asistan_cevap(soru):
     soru = soru.lower()
     for kategori, mekanlar in MEKAN_VERISI.items():
         if kategori in soru or (kategori == "yemek" and ("restoran" in soru or "balık" in soru)):
-            # Ödüllü mekanları bul
             odullu = [m['ad'] for m in mekanlar if "🏅" in m['oz']]
             if odullu:
-                return f"Ayvalık'ta en iyi {kategori} mekanlarını buldum. Özellikle **Gault Millau** ödüllü olan **{', '.join(odullu)}** favorilerimizdir. Detaylar için ilgili sekmeye bakabilirsin! ✨"
+                return f"Detayvalik.io öneriyor: Özellikle **Gault Millau** ödüllü olan **{', '.join(odullu)}** restoranlarını mutlaka denemelisiniz. Navigasyon için sekmelere bakabilirsiniz! ✨"
             else:
-                mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]]) # İlk 3'ünü göster
-                return f"Ayvalık'ta popüler {kategori} mekanları: **{mekan_isimleri}** ve daha fazlası... Detaylar için sekmelere göz atabilirsin! 😊"
-    
-    if "taksi" in soru: return "Sarımsaklı Taksi'ye '🚕 Taksi' sekmesinden ulaşabilirsin. 🚕"
-    return "Ben Detayvalik.io asistanıyım. Size yemek, pizza, kokteyl veya plaj önerileri sunabilirim. Ne sormak istersiniz?"
+                mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
+                return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. Detaylar ilgili sekmede! 😊"
+    if "taksi" in soru: return "Sarımsaklı Taksi bir tık uzağınızda! '🚕 Taksi' sekmesine geçip butona basmanız yeterli. 🚕"
+    return "Merhaba! Ben Detayvalik.io asistanıyım. Yemek, Pizza, Kokteyl, Eğlence veya Beach önerileri sunabilirim. Ne sormak istersiniz?"
 
-# --- 5. ÜST PANEL ---
+# --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
 kategoriler = ["🤖 Asistan", "🍽️ Yemek", "🍕 Pizza", "☕ Kahve", "🍸 Kokteyl", "🎉 Eğlence", "🏖️ Beach", "🚕 Taksi", "💊 Eczane"]
@@ -126,12 +124,12 @@ st.divider()
 if secim == "🤖 Asistan":
     if not st.session_state.messages:
         with st.chat_message("assistant", avatar="🤖"):
-            st.markdown("👋 **Merhaba! Ben Detayvalik.io Asistanınız.** \n\nAyvalık'ta ödüllü restoranlardan keyifli kahve duraklarına kadar her şeyi biliyorum. Size nasıl yardımcı olabilirim?")
+            st.markdown("👋 **Merhaba! Ben Detayvalik.io Asistanınız.** \n\nAyvalık'ta ödüllü lezzet duraklarından en iyi plajlara kadar size rehberlik edebilirim. Ne sormak istersiniz?")
 
     for m in st.session_state.messages:
         with st.chat_message(m["role"]): st.markdown(m["content"])
 
-    if prompt := st.chat_input("Pizza nerede yenir? Ödüllü restoranlar hangileri?"):
+    if prompt := st.chat_input("Nerede pizza yenir?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"): st.markdown(prompt)
         with st.chat_message("assistant", avatar="🤖"):
@@ -140,7 +138,7 @@ if secim == "🤖 Asistan":
             st.session_state.messages.append({"role": "assistant", "content": response})
 
 elif secim == "🚕 Taksi":
-    st.markdown('<div class="venue-card"><div><h4>🚕 Sarımsaklı Taksi</h4><p class="standard-text">Hızlı ve Güvenilir</p></div><div class="venue-link"><a href="tel:02663961010">📞 ARA</a></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="venue-card"><div><h4>🚕 Sarımsaklı Taksi</h4><p class="standard-text">7/24 Hızlı Ulaşım</p></div><div class="venue-link"><a href="tel:02663961010">📞 ARA</a></div></div>', unsafe_allow_html=True)
 elif secim == "💊 Eczane":
     st.markdown('<div class="venue-card"><div><h4>💊 Nöbetçi Eczaneler</h4><p class="standard-text">Güncel Liste</p></div><div class="venue-link"><a href="https://www.aeo.org.tr/NobetciEczaneler" target="_blank">🔍 GÖR</a></div></div>', unsafe_allow_html=True)
 else:
