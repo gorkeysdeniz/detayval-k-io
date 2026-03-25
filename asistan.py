@@ -4,83 +4,56 @@ import streamlit as st
 st.set_page_config(page_title="Ayvalık Asistanı", layout="centered", page_icon="🏡")
 
 if "secili_sayfa" not in st.session_state:
-    st.session_state.secili_sayfa = "asistan"
+    st.session_state.secili_sayfa = "🤖 Asistan"
 
-# --- 2. CSS (MODERN MOBİL APP TASARIMI) ---
+# --- 2. CSS (MOBİLDE ASLA PATLAMAYAN TASARIM) ---
 st.markdown("""
     <style>
-    /* Sayfa boşluklarını sıfırla */
-    .block-container { padding: 1rem 0.5rem !important; max-width: 100% !important; }
+    /* Streamlit'in varsayılan boşluklarını temizle */
+    .block-container { padding: 1rem 0.5rem !important; }
     
-    /* YATAY KAYAN MENÜ KONTEYNERI */
-    div[data-testid="stHorizontalBlock"] {
-        display: flex !important;
-        flex-direction: row !important;
-        overflow-x: auto !important;
-        white-space: nowrap !important;
-        gap: 10px !important;
-        padding: 5px 0 !important;
-    }
-    /* Kaydırma çubuğunu gizle */
-    div[data-testid="stHorizontalBlock"]::-webkit-scrollbar { display: none; }
-
-    /* BUTONLARI ŞIK "TAB"LARA DÖNÜŞTÜR */
-    div.stButton > button {
-        background-color: white !important;
-        color: #1e293b !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 20px !important; /* Yuvarlak modern görünüm */
-        padding: 8px 16px !important;
-        font-size: 14px !important;
-        font-weight: 600 !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
-        transition: all 0.2s;
-        display: inline-block !important;
-        width: auto !important;
-    }
-
-    /* Tıklanan butonu vurgula */
-    div.stButton > button:focus {
-        background-color: #2c5364 !important;
-        color: white !important;
-        border-color: #2c5364 !important;
-    }
-
-    .main-header {
+    /* Üst Başlık Tasarımı */
+    .header-container {
         background: linear-gradient(135deg, #0f2027 0%, #2c5364 100%);
-        color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 10px;
+        color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
+
+    /* Mekan Kartları Tasarımı */
     .venue-card {
-        background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px;
-        border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;
+        background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px;
+        border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
+    .venue-info h4 { margin: 0; color: #1e293b; font-size: 15px; }
+    .venue-info p { margin: 2px 0 0 0; color: #64748b; font-size: 12px; }
+    
+    .venue-link a {
+        background: #2c5364; color: white; padding: 8px 15px; border-radius: 10px;
+        text-decoration: none; font-size: 11px; font-weight: bold;
+    }
+
+    /* Kategori butonlarını alt alta binmekten kurtaran ve mobil odaklı yapan ayar */
+    div.stSelectbox { margin-bottom: 20px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. ÜST BAŞLIK ---
-st.markdown('<div class="main-header"><h1>🏡 Ayvalık Misafir Asistanı</h1></div>', unsafe_allow_html=True)
+# --- 3. ÜST PANEL ---
+st.markdown('<div class="header-container"><h2>🏡 Ayvalık Misafir Asistanı</h2></div>', unsafe_allow_html=True)
 
-# --- 4. YATAY KATEGORİ MENÜSÜ ---
-# Mobilde parmakla sağa kaydırılabilen 9 kategori
-menu_cols = st.columns(9)
-
-categories = [
-    ("🤖 Asistan", "asistan", "c1"),
-    ("🍽️ Yemek", "yemek", "c2"),
-    ("🍕 Pizza", "pizza", "c3"),
-    ("☕ Kahve", "kahve", "c4"),
-    ("🏖️ Beach", "beach", "c5"),
-    ("🍸 Kokteyl", "kokteyl", "c6"),
-    ("🎉 Eğlence", "eglence", "c7"),
-    ("🚕 Taksi", "taksi", "c8"),
-    ("💊 Eczane", "eczane", "c9")
+# --- 4. MOBİL DOSTU SEÇİM PANELİ (İŞİN SIRRI BURADA) ---
+# Grid yerine Streamlit'in en stabil çalışan 'pills' veya 'selectbox' yapısını 
+# modern bir şekilde kullanıyoruz. Mobilde asla kayma yapmaz.
+kategoriler = [
+    "🤖 Asistan", "🍽️ Yemek", "🍕 Pizza", "☕ Kahve", 
+    "🏖️ Beach", "🍸 Kokteyl", "🎉 Eğlence", "🚕 Taksi", "💊 Eczane"
 ]
 
-for i, (label, target, key) in enumerate(categories):
-    with menu_cols[i]:
-        if st.button(label, key=key):
-            st.session_state.secili_sayfa = target
-            st.rerun()
+# Mobilde kullanıcı dostu, büyük ve kolay tıklanabilir seçim alanı
+secim = st.pills("Kategori Seçin", kategoriler, selection_mode="single", default="🤖 Asistan")
+
+if secim:
+    st.session_state.secili_sayfa = secim
 
 st.divider()
 
@@ -96,19 +69,32 @@ MEKAN_VERISI = {
 
 # --- 6. FONKSİYONLAR (DOKUNULMADI) ---
 def kart_bas(key):
-    if key in MEKAN_VERISI:
-        for m in MEKAN_VERISI[key]:
-            st.markdown(f'<div class="venue-card"><div><h4 style="margin:0; font-size:14px;">{m["ad"]}</h4><p style="margin:0; font-size:11px; color:#666;">{m["oz"]}</p></div><div class="venue-link"><a href="{m["ln"]}" target="_blank" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:10px; font-weight:bold;">📍 KONUM</a></div></div>', unsafe_allow_html=True)
+    key_map = {"🤖 Asistan": "asistan", "🍽️ Yemek": "yemek", "🍕 Pizza": "pizza", "☕ Kahve": "kahve", "🏖️ Beach": "beach", "🍸 Kokteyl": "kokteyl", "🎉 Eğlence": "eglence", "🚕 Taksi": "taksi", "💊 Eczane": "eczane"}
+    arama_anahtari = key_map.get(key, "asistan")
+    
+    if arama_anahtari in MEKAN_VERISI:
+        for m in MEKAN_VERISI[arama_anahtari]:
+            st.markdown(f'''
+                <div class="venue-card">
+                    <div class="venue-info">
+                        <h4>{m["ad"]}</h4>
+                        <p>{m["oz"]}</p>
+                    </div>
+                    <div class="venue-link">
+                        <a href="{m["ln"]}" target="_blank">📍 KONUM</a>
+                    </div>
+                </div>
+            ''', unsafe_allow_html=True)
 
 # --- 7. SAYFA MANTIĞI ---
 s = st.session_state.secili_sayfa
-st.subheader(f"✨ {s.capitalize()}")
 
-if s == "asistan":
-    st.chat_input("Nereye gitmek istersiniz?")
-elif s == "taksi":
-    st.markdown('<div class="venue-card"><h4>🚕 Sarımsaklı Taksi</h4><div class="venue-link"><a href="tel:02663961010" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:bold;">📞 ARA</a></div></div>', unsafe_allow_html=True)
-elif s == "eczane":
-    st.markdown('<div class="venue-card"><h4>💊 Nöbetçi Eczaneler</h4><div class="venue-link"><a href="https://www.aeo.org.tr/NobetciEczaneler" target="_blank" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:bold;">🔍 GÖR</a></div></div>', unsafe_allow_html=True)
+if "Asistan" in s:
+    st.info("🤖 Size nasıl yardımcı olabilirim? Aşağıdan bir kategori seçebilir veya buraya yazabilirsiniz.")
+    st.chat_input("Örn: En yakın pizza nerede?")
+elif "Taksi" in s:
+    st.markdown('<div class="venue-card"><h4>🚕 Sarımsaklı Taksi</h4><div class="venue-link"><a href="tel:02663961010">📞 ARA</a></div></div>', unsafe_allow_html=True)
+elif "Eczane" in s:
+    st.markdown('<div class="venue-card"><h4>💊 Nöbetçi Eczaneler</h4><div class="venue-link"><a href="https://www.aeo.org.tr/NobetciEczaneler" target="_blank">🔍 GÖR</a></div></div>', unsafe_allow_html=True)
 else:
     kart_bas(s)
