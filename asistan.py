@@ -6,14 +6,13 @@ st.set_page_config(page_title="Ayvalık Asistanı", layout="centered", page_icon
 if "secili_sayfa" not in st.session_state:
     st.session_state.secili_sayfa = "asistan"
 
-# --- 2. CSS (SIFIR KAYDIRMA + GİZLİ TETİKLEYİCİLER) ---
+# --- 2. CSS (SIFIR KAYDIRMA + KESİN TETİKLEME) ---
 st.markdown("""
     <style>
-    /* 1. Sayfa ve Konteyner Ayarları (Taşmayı Engelle) */
     .block-container { padding: 1rem 0.5rem !important; max-width: 100% !important; }
     html, body, [data-testid="stAppViewContainer"] { overflow-x: hidden !important; }
 
-    /* 2. PINTEREST GRID (Yan yana 3 buton, tam sığar) */
+    /* PINTEREST GRID */
     .p-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -22,7 +21,7 @@ st.markdown("""
         margin-bottom: 15px;
     }
 
-    /* 3. ŞIK BUTON TASARIMI */
+    /* BUTON TASARIMI */
     .p-btn {
         background: white;
         border: 1px solid #e2e8f0;
@@ -34,17 +33,14 @@ st.markdown("""
         justify-content: center;
         cursor: pointer;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        transition: transform 0.1s;
     }
     .p-btn:active { transform: scale(0.95); background: #f1f5f9; }
-    .p-icon { font-size: 26px; margin-bottom: 4px; }
-    .p-text { font-size: 13px; font-weight: 700; color: #1e293b; }
+    .p-icon { font-size: 26px; margin-bottom: 4px; pointer-events: none; }
+    .p-text { font-size: 13px; font-weight: 700; color: #1e293b; pointer-events: none; }
 
-    /* 4. STREAMLIT BUTONLARINI GİZLE (Hızlı geçiş için arka planda çalışacaklar) */
-    div[data-testid="stVerticalBlock"] > div:has(button[kind="secondary"]) {
-        display: none !important;
-    }
-
+    /* STREAMLIT BUTONLARINI GİZLE */
+    .hidden-btns { display: none !important; }
+    
     .main-header {
         background: linear-gradient(135deg, #0f2027 0%, #2c5364 100%);
         color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px;
@@ -56,58 +52,43 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. PANEL ---
-st.markdown('<div class="main-header"><h1>🏡 Ayvalık Asistanı</h1></div>', unsafe_allow_html=True)
+# --- 3. GİZLİ TETİKLEYİCİLER (ID İLE) ---
+# Bunlar sadece sayfa yenilemeden içeriği değiştirmek için varlar.
+st.markdown('<div class="hidden-btns">', unsafe_allow_html=True)
+if st.button("btn_1"): st.session_state.secili_sayfa = "asistan"
+if st.button("btn_2"): st.session_state.secili_sayfa = "yemek"
+if st.button("btn_3"): st.session_state.secili_sayfa = "pizza"
+if st.button("btn_4"): st.session_state.secili_sayfa = "kahve"
+if st.button("btn_5"): st.session_state.secili_sayfa = "beach"
+if st.button("btn_6"): st.session_state.secili_sayfa = "kokteyl"
+if st.button("btn_7"): st.session_state.secili_sayfa = "eglence"
+if st.button("btn_8"): st.session_state.secili_sayfa = "taksi"
+if st.button("btn_9"): st.session_state.secili_sayfa = "eczane"
+st.markdown('</div>', unsafe_allow_html=True)
 
-# --- 4. GÖRÜNMEZ STREAMLIT BUTONLARI (Hızlı Geçiş Mekanizması) ---
-# Bu butonlar ekranda görünmez ama tıklandığında içeriği anında değiştirir.
-if st.button("asistan_trigger"): st.session_state.secili_sayfa = "asistan"
-if st.button("yemek_trigger"): st.session_state.secili_sayfa = "yemek"
-if st.button("pizza_trigger"): st.session_state.secili_sayfa = "pizza"
-if st.button("kahve_trigger"): st.session_state.secili_sayfa = "kahve"
-if st.button("beach_trigger"): st.session_state.secili_sayfa = "beach"
-if st.button("kokteyl_trigger"): st.session_state.secili_sayfa = "kokteyl"
-if st.button("eglence_trigger"): st.session_state.secili_sayfa = "eglence"
-if st.button("taksi_trigger"): st.session_state.secili_sayfa = "taksi"
-if st.button("eczane_trigger"): st.session_state.secili_sayfa = "eczane"
+# --- 4. GÖRÜNEN GRID (JS İLE KESİN ÇÖZÜM) ---
+# Tıklandığında direkt olarak sıradaki butona (btn_X) basan güvenli JS.
+def trigger_js(index):
+    return f"window.parent.document.querySelectorAll('button')[{index-1}].click();"
 
-# --- 5. GÖRÜNEN HTML GRID (Tıklanınca Görünmez Butonları Tetikler) ---
-# JavaScipt ile sayfa yenilemeden (URL değişmeden) anlık geçiş sağlar.
-st.markdown("""
+st.markdown(f"""
+    <div class="main-header"><h1>🏡 Ayvalık Asistanı</h1></div>
     <div class="p-grid">
-        <div class="p-btn" onclick="document.querySelectorAll('button p').forEach(p => {if(p.innerText=='asistan_trigger') p.click()})">
-            <div class="p-icon">🤖</div><div class="p-text">Asistan</div>
-        </div>
-        <div class="p-btn" onclick="document.querySelectorAll('button p').forEach(p => {if(p.innerText=='yemek_trigger') p.click()})">
-            <div class="p-icon">🍽️</div><div class="p-text">Yemek</div>
-        </div>
-        <div class="p-btn" onclick="document.querySelectorAll('button p').forEach(p => {if(p.innerText=='pizza_trigger') p.click()})">
-            <div class="p-icon">🍕</div><div class="p-text">Pizza</div>
-        </div>
-        <div class="p-btn" onclick="document.querySelectorAll('button p').forEach(p => {if(p.innerText=='kahve_trigger') p.click()})">
-            <div class="p-icon">☕</div><div class="p-text">Kahve</div>
-        </div>
-        <div class="p-btn" onclick="document.querySelectorAll('button p').forEach(p => {if(p.innerText=='beach_trigger') p.click()})">
-            <div class="p-icon">🏖️</div><div class="p-text">Beach</div>
-        </div>
-        <div class="p-btn" onclick="document.querySelectorAll('button p').forEach(p => {if(p.innerText=='kokteyl_trigger') p.click()})">
-            <div class="p-icon">🍸</div><div class="p-text">Kokteyl</div>
-        </div>
-        <div class="p-btn" onclick="document.querySelectorAll('button p').forEach(p => {if(p.innerText=='eglence_trigger') p.click()})">
-            <div class="p-icon">🎉</div><div class="p-text">Eğlence</div>
-        </div>
-        <div class="p-btn" onclick="document.querySelectorAll('button p').forEach(p => {if(p.innerText=='taksi_trigger') p.click()})">
-            <div class="p-icon">🚕</div><div class="p-text">Taksi</div>
-        </div>
-        <div class="p-btn" onclick="document.querySelectorAll('button p').forEach(p => {if(p.innerText=='eczane_trigger') p.click()})">
-            <div class="p-icon">💊</div><div class="p-text">Eczane</div>
-        </div>
+        <div class="p-btn" onclick="{trigger_js(1)}"><div class="p-icon">🤖</div><div class="p-text">Asistan</div></div>
+        <div class="p-btn" onclick="{trigger_js(2)}"><div class="p-icon">🍽️</div><div class="p-text">Yemek</div></div>
+        <div class="p-btn" onclick="{trigger_js(3)}"><div class="p-icon">🍕</div><div class="p-text">Pizza</div></div>
+        <div class="p-btn" onclick="{trigger_js(4)}"><div class="p-icon">☕</div><div class="p-text">Kahve</div></div>
+        <div class="p-btn" onclick="{trigger_js(5)}"><div class="p-icon">🏖️</div><div class="p-text">Beach</div></div>
+        <div class="p-btn" onclick="{trigger_js(6)}"><div class="p-icon">🍸</div><div class="p-text">Kokteyl</div></div>
+        <div class="p-btn" onclick="{trigger_js(7)}"><div class="p-icon">🎉</div><div class="p-text">Eğlence</div></div>
+        <div class="p-btn" onclick="{trigger_js(8)}"><div class="p-icon">🚕</div><div class="p-text">Taksi</div></div>
+        <div class="p-btn" onclick="{trigger_js(9)}"><div class="p-icon">💊</div><div class="p-text">Eczane</div></div>
     </div>
     """, unsafe_allow_html=True)
 
 st.divider()
 
-# --- 6. İÇERİĞİ KORUYAN VERİ SETİ (DOKUNULMADI) ---
+# --- 5. İÇERİK VERİSİ ---
 MEKAN_VERISI = {
     "kahve": [{"ad": "Pinos Cafe", "oz": "Butik Kahve", "ln": "http://google.com/1"}, {"ad": "Crow Coffe", "oz": "3. Nesil Kahve", "ln": "http://google.com/2"}, {"ad": "Ivy Ayvalık", "oz": "Huzurlu Bahçe", "ln": "http://google.com/3"}, {"ad": "Daisy Küçükköy", "oz": "Sanat & Kahve", "ln": "http://google.com/4"}, {"ad": "Nona Cunda", "oz": "Cunda Esintisi", "ln": "http://google.com/5"}, {"ad": "Cafe Melin", "oz": "Keyifli Durak", "ln": "http://google.com/6"}, {"ad": "Declan", "oz": "Modern Coffee", "ln": "http://google.com/7"}, {"ad": "AIMA", "oz": "Akademik Lezzet", "ln": "http://google.com/8"}],
     "pizza": [{"ad": "Pizza Teo", "oz": "Odun Ateşi", "ln": "http://google.com/9"}, {"ad": "Uno Cunda", "oz": "İtalyan Klasiği", "ln": "http://google.com/10"}, {"ad": "Tino Ristorante", "oz": "Pizzeria", "ln": "http://google.com/11"}, {"ad": "Küçük İtalya", "oz": "Napoliten", "ln": "http://google.com/12"}, {"ad": "Cunda Luna", "oz": "Bahçe & Pizza", "ln": "http://google.com/13"}],
@@ -122,7 +103,7 @@ def kart_bas(key):
         for m in MEKAN_VERISI[key]:
             st.markdown(f'<div class="venue-card"><div><h4 style="margin:0; font-size:14px;">{m["ad"]}</h4><p style="margin:0; font-size:11px; color:#666;">{m["oz"]}</p></div><div class="venue-link"><a href="{m["ln"]}" target="_blank" style="background:#2c5364; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-size:10px; font-weight:bold;">📍 KONUM</a></div></div>', unsafe_allow_html=True)
 
-# --- 7. SAYFA MANTIĞI ---
+# --- 6. SAYFA MANTIĞI ---
 s = st.session_state.secili_sayfa
 
 if s == "asistan":
