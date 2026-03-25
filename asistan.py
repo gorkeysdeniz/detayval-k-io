@@ -102,39 +102,39 @@ MEKAN_VERISI = {
 }
 
 
-      # --- 4. HİBRİT ASİSTAN ZEKA ---
+    # --- 4. HİBRİT ASİSTAN ZEKA ---
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # 1. KADEME: KOD İÇİNDEKİ VERİ (Ayvalık Rehberi)
+    # 1. KADEME: PYTHON KONTROLÜ (Hızlı Yanıt)
     for kategori, mekanlar in MEKAN_VERISI.items():
-        if kategori in soru_lower:
-            isimler = [m['ad'] for m in mekanlar[:3]]
-            return f"Detayvalik.io öneriyor: **{', '.join(isimler)}**. İyi eğlenceler! 😊"
+        if kategori in soru_lower or (kategori == "yemek" and ("restoran" in soru_lower or "balık" in soru_lower)):
+            odullu = [m['ad'] for m in mekanlar if "🏅" in m['oz']]
+            if odullu:
+                return f"Detayvalik.io öneriyor: Özellikle **Gault Millau** ödüllü olan **{', '.join(odullu)}** mekanlarını mutlaka denemelisiniz. ✨"
+            else:
+                mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
+                return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. 😊"
 
-    # 2. KADEME: GEMINI (En Sağlam Çağrı)
-    try:
-        # Geçen seferki gibi en düz ismi kullanıyoruz
-        model = genai.GenerativeModel('gemini-pro')
-        
-        prompt = f"Sen bir Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
-        response = model.generate_content(prompt)
-        
-        if response and response.text:
-            return response.text
-        else:
-            return "Şu an yanıt hazırlayamadım, tekrar sorar mısın? 😊"
+    # 2. KADEME: GEMINI (Sıralı Deneme - 404 Savar)
+    # Denenecek model isimleri (Sırasıyla)
+    model_listesi = ['gemini-1.5-flash', 'gemini-pro', 'models/gemini-pro']
+    prompt_text = f"Sen bir Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
 
-    except Exception as e:
-        # Eğer hala 404 verirse, otomatik olarak '1.5-flash' deneyecek
+    for model_ismi in model_listesi:
         try:
-            model_flash = genai.GenerativeModel('gemini-1.5-flash')
-            res_flash = model_flash.generate_content(prompt)
-            return res_flash.text
-        except:
-            return "Bağlantı tazelemem gerekiyor, lütfen 10 saniye sonra tekrar dene! ✨"
+            model = genai.GenerativeModel(model_ismi)
+            response = model.generate_content(prompt_text)
+            if response and response.text:
+                return response.text
+        except Exception:
+            # Bu model hata verirse (404 vb.), döngü bir sonrakine geçer
+            continue
+
+    # Eğer hiçbir model çalışmazsa son çare:
+    return "Bağlantı tazelemem gerekiyor, lütfen 10 saniye sonra tekrar sorar mısın? ✨"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
