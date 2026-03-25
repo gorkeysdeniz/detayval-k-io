@@ -105,7 +105,7 @@ if secim == "🤖 Asistan":
     # Karşılama Balonu (Eğer henüz mesaj yoksa)
     if not st.session_state.messages:
         with st.chat_message("assistant"):
-            st.markdown("👋 **Merhaba! Ben SAYEM Misafir Asistanınız.** \n\nAyvalık'ta ne yapmak istersiniz? Size en iyi kokteyl barlarını, pizza mekanlarını veya plajları önerebilirim. Buyurun, sizi dinliyorum...")
+            st.markdown("👋 **Merhaba! Ben Detayvalık.io Misafir Asistanınız.** \n\nAyvalık'ta ne yapmak istersiniz? Size en iyi kokteyl barlarını, pizza mekanlarını veya plajları önerebilirim. Buyurun, sizi dinliyorum...")
 
     # Mesaj Geçmişini Göster
     for message in st.session_state.messages:
