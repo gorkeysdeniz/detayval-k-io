@@ -103,9 +103,6 @@ MEKAN_VERISI = {
 # Gemini Yapılandırması
 genai.configure(api_key="AIzaSyDrciQd7GTADbez-7av0M6KyuSQYmHUd0g")
 
-# MODEL ADINI GÜNCELLEDİK: 'gemini-1.5-flash-latest' yaptık
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
-
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
@@ -122,19 +119,29 @@ def asistan_cevap(soru):
     if "taksi" in soru_lower:
         return "Sarımsaklı Taksi bir tık uzağınızda! 🚕"
 
-    # 2. KADEME: YAPAY ZEKA
-    try:
-        prompt = f"""
-        Sen Detayvalik.io'nun uzman Ayvalık asistanısın. 
-        Sadece şu listedeki mekanları kullanarak samimi tavsiyeler ver: {MEKAN_VERISI}
-        Gault Millau ödüllüleri (Ayna, By Nihat, Ayvalık Balıkçısı) öne çıkar.
-        Soru: {soru}
-        """
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        # Hata devam ederse burası bize detay verecek
-        return f"Bağlantı Hatası Detayı: {str(e)}"
+    # 2. KADEME: OTOMATİK MODEL TARAYICI (Hibrit Zeka)
+    # Hangi model çalışıyorsa onu bulana kadar dener
+    denenecek_modeller = [
+        'gemini-1.5-flash', 
+        'gemini-1.5-flash-latest', 
+        'gemini-1.5-pro', 
+        'gemini-pro'
+    ]
+    
+    prompt = f"Sen Detayvalik.io asistanısın. Şu listeye göre samimi cevap ver: {MEKAN_VERISI}. Soru: {soru}"
+
+    for model_adi in denenecek_modeller:
+        try:
+            model = genai.GenerativeModel(model_adi)
+            response = model.generate_content(prompt)
+            if response and response.text:
+                return response.text
+        except Exception:
+            # Bu model çalışmadı (404 veya başka hata), bir sonrakine geç
+            continue
+            
+    # Eğer hiçbir model çalışmazsa son çare mesajı
+    return "Şu an tüm zeka modellerim meşgul, ama sol taraftaki menüden tüm mekanları görebilirsin! 😊"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
