@@ -100,8 +100,8 @@ MEKAN_VERISI = {
     ]
 }
 
-# Gemini Yapılandırması
-genai.configure(api_key="AIzaSyDrciQd7GTADbez-7av0M6KyuSQYmHUd0g")
+# Artık anahtarı buraya yazmıyoruz, Streamlit'in gizli ayarlarından çekiyoruz
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 def asistan_cevap(soru):
     soru_lower = soru.lower()
