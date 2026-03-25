@@ -101,12 +101,16 @@ MEKAN_VERISI = {
 }
 
 # --- 4. HİBRİT ASİSTAN ZEKA ---
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+# API Yapılandırması
+if "GEMINI_API_KEY" in st.secrets:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+else:
+    st.error("API Key bulunamadı! Lütfen Secrets ayarlarını kontrol edin.")
 
 def asistan_cevap(soru):
     soru_lower = soru.lower()
     
-    # 1. KADEME: PYTHON KONTROLÜ (Değişmedi)
+    # 1. KADEME: PYTHON KONTROLÜ
     for kategori, mekanlar in MEKAN_VERISI.items():
         if kategori in soru_lower or (kategori == "yemek" and ("restoran" in soru_lower or "balık" in soru_lower)):
             odullu = [m['ad'] for m in mekanlar if "🏅" in m['oz']]
@@ -116,12 +120,14 @@ def asistan_cevap(soru):
                 mekan_isimleri = ", ".join([m['ad'] for m in mekanlar[:3]])
                 return f"Ayvalık'ta popüler {kategori} noktaları arasında **{mekan_isimleri}** öne çıkıyor. 😊"
 
-    # 2. KADEME: GEMINI (Geçen günkü kesin çözüm)
+    # 2. KADEME: GEMINI (En Garanti Çağrı)
     try:
-        # Başına 'models/' eklemek adres karmaşasını çözer
-        model = genai.GenerativeModel('models/gemini-pro')
+        # En standart model ismi
+        model = genai.GenerativeModel('gemini-pro')
         
-        prompt_text = f"Sen bir Ayvalık rehberisin. Liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
+        prompt_text = f"Sen bir Ayvalık rehberisin. Elindeki liste: {MEKAN_VERISI}. Soru: {soru}. Kısa cevap ver."
+        
+        # Güvenlik ve Hata Kontrolü eklenmiş çağrı
         response = model.generate_content(prompt_text)
         
         if response and response.text:
@@ -130,8 +136,8 @@ def asistan_cevap(soru):
             return "Şu an bu soruya yanıt veremiyorum, lütfen başka bir şey sor! 😊"
 
     except Exception as e:
-        # Hatayı tam görmen için burayı açık bırakıyorum
-        return f"Bağlantı hatası: {str(e)}"
+        # Hata mesajını ekrana basıyoruz ki neden "Oh No" dediğini anlayalım
+        return f"Bağlantı hatası oluştu: {str(e)}"
 # --- 5. ARAYÜZ ---
 st.markdown('<div class="header-container"><h2>🏡 Detayvalik.io Asistan</h2></div>', unsafe_allow_html=True)
 
